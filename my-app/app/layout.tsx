@@ -22,6 +22,20 @@ export default function RootLayout({
       <body
         className={`${headingFont.variable} ${bodyFont.variable} font-sans antialiased`}
       >
+        {/* Blocking script to set theme before React hydrates - prevents FOUC */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const stored = localStorage.getItem('theme');
+                  const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                  document.documentElement.classList.toggle('dark', theme === 'dark');
+                } catch (e) {}
+              })();
+            `
+          }}
+        />
         <ReduxProvider>
           <ThemeProvider>
             <ToastProvider>

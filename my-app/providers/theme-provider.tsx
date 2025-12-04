@@ -7,39 +7,41 @@ type ThemeMode = 'light' | 'dark'
 interface ThemeContextType {
   mode: ThemeMode
   toggle: () => void
+  mounted: boolean
 }
 
 const ThemeContext = createContext<ThemeContextType | null>(null)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<ThemeMode>(() => {
-    // Initialize from localStorage or system preference (only on client)
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('theme') as ThemeMode | null
-      if (stored) return stored
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      return prefersDark ? 'dark' : 'light'
-    }
-    return 'light'
-  })
+  // Always start with 'light' to match server render
+  const [mode, setMode] = useState<ThemeMode>('light')
+  const [mounted, setMounted] = useState(false)
   const mountedRef = useRef(false)
 
-  // Initialize theme on mount
+  // Initialize theme on mount (after hydration)
   useEffect(() => {
     if (mountedRef.current) return
     mountedRef.current = true
 
-    // Apply initial theme
-    document.documentElement.classList.toggle('dark', mode === 'dark')
-  }, [mode])
+    // Read from localStorage or system preference
+    const stored = localStorage.getItem('theme') as ThemeMode | null
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const initialMode = stored || (prefersDark ? 'dark' : 'light')
+    
+    setMode(initialMode)
+    document.documentElement.classList.toggle('dark', initialMode === 'dark')
+    setMounted(true)
+  }, [])
 
   // Update theme when mode changes (after initial mount)
   useEffect(() => {
     if (!mountedRef.current) return
 
     document.documentElement.classList.toggle('dark', mode === 'dark')
-    localStorage.setItem('theme', mode)
-  }, [mode])
+    if (mounted) {
+      localStorage.setItem('theme', mode)
+    }
+  }, [mode, mounted])
 
   const toggle = () => {
     setMode((prev) => {
@@ -49,7 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ThemeContext.Provider value={{ mode, toggle }}>{children}</ThemeContext.Provider>
+    <ThemeContext.Provider value={{ mode, toggle, mounted }}>{children}</ThemeContext.Provider>
   )
 }
 
