@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/providers/theme-provider'
 import { ToastProvider } from '@/providers/toast-provider'
 import { KeyboardShortcuts } from '@/components/keyboard-shortcuts'
 import { Clarity } from '@/components/analytics/clarity'
+import { AuthInitializer } from '@/components/auth/auth-initializer'
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body
         className={`${headingFont.variable} ${bodyFont.variable} font-sans antialiased`}
       >
@@ -31,6 +32,70 @@ export default function RootLayout({
                   const stored = localStorage.getItem('theme');
                   const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
                   document.documentElement.classList.toggle('dark', theme === 'dark');
+                  
+                  const storedColor = localStorage.getItem('theme-color') || 'blue';
+                  const colorMap = {
+                    blue: { 
+                      primary: '#3b82f6', light: '#60a5fa', dark: '#2563eb',
+                      bgLight: '#f0f7ff', bgMuted: '#e0f2fe', bgSurface: '#dbeafe', bgCard: '#ffffff',
+                      bgDark: '#1a1f2e', bgCardDark: '#1e293b', bgMutedDark: '#2d3748', bgSurfaceDark: '#1e293b', bgOverlayDark: '#0f1419'
+                    },
+                    purple: { 
+                      primary: '#8b5cf6', light: '#a78bfa', dark: '#6d28d9',
+                      bgLight: '#faf5ff', bgMuted: '#f3e8ff', bgSurface: '#e9d5ff', bgCard: '#ffffff',
+                      bgDark: '#1e1a2e', bgCardDark: '#2d1f3d', bgMutedDark: '#3d2f4d', bgSurfaceDark: '#2d1f3d', bgOverlayDark: '#0f0c19'
+                    },
+                    green: { 
+                      primary: '#10b981', light: '#34d399', dark: '#059669',
+                      bgLight: '#f0fdf4', bgMuted: '#dcfce7', bgSurface: '#bbf7d0', bgCard: '#ffffff',
+                      bgDark: '#0f1f1a', bgCardDark: '#1a2e25', bgMutedDark: '#2a3d35', bgSurfaceDark: '#1a2e25', bgOverlayDark: '#0a1410'
+                    },
+                    pink: { 
+                      primary: '#ec4899', light: '#f472b6', dark: '#db2777',
+                      bgLight: '#fdf2f8', bgMuted: '#fce7f3', bgSurface: '#fbcfe8', bgCard: '#ffffff',
+                      bgDark: '#1f151a', bgCardDark: '#2d1f2e', bgMutedDark: '#3d2f3e', bgSurfaceDark: '#2d1f2e', bgOverlayDark: '#0f0a0f'
+                    },
+                    orange: { 
+                      primary: '#f97316', light: '#fb923c', dark: '#ea580c',
+                      bgLight: '#fff7ed', bgMuted: '#ffedd5', bgSurface: '#fed7aa', bgCard: '#ffffff',
+                      bgDark: '#1f1a0f', bgCardDark: '#2d251a', bgMutedDark: '#3d352a', bgSurfaceDark: '#2d251a', bgOverlayDark: '#0f0a07'
+                    },
+                    red: { 
+                      primary: '#ef4444', light: '#f87171', dark: '#dc2626',
+                      bgLight: '#fef2f2', bgMuted: '#fee2e2', bgSurface: '#fecaca', bgCard: '#ffffff',
+                      bgDark: '#1a0f0f', bgCardDark: '#2d1a1a', bgMutedDark: '#3d2525', bgSurfaceDark: '#2d1a1a', bgOverlayDark: '#0f0808'
+                    },
+                    teal: { 
+                      primary: '#14b8a6', light: '#5eead4', dark: '#0d9488',
+                      bgLight: '#f0fdfa', bgMuted: '#ccfbf1', bgSurface: '#99f6e4', bgCard: '#ffffff',
+                      bgDark: '#0f1f1a', bgCardDark: '#1a2e28', bgMutedDark: '#2a3d38', bgSurfaceDark: '#1a2e28', bgOverlayDark: '#0a1410'
+                    },
+                    indigo: { 
+                      primary: '#6366f1', light: '#818cf8', dark: '#4f46e5',
+                      bgLight: '#eef2ff', bgMuted: '#e0e7ff', bgSurface: '#c7d2fe', bgCard: '#ffffff',
+                      bgDark: '#1a1a2e', bgCardDark: '#252538', bgMutedDark: '#353548', bgSurfaceDark: '#252538', bgOverlayDark: '#0f0f19'
+                    }
+                  };
+                  const colorScheme = colorMap[storedColor] || colorMap.blue;
+                  document.documentElement.style.setProperty('--color-brand-primary', colorScheme.primary);
+                  document.documentElement.style.setProperty('--color-brand-primaryLight', colorScheme.light);
+                  document.documentElement.style.setProperty('--color-brand-primaryDark', colorScheme.dark);
+                  document.documentElement.style.setProperty('--color-background-default', colorScheme.bgLight);
+                  document.documentElement.style.setProperty('--color-background-muted', colorScheme.bgMuted);
+                  document.documentElement.style.setProperty('--color-background-surface', colorScheme.bgSurface);
+                  document.documentElement.style.setProperty('--color-background-card', colorScheme.bgCard);
+                  document.documentElement.style.setProperty('--color-background-dark', colorScheme.bgDark);
+                  document.documentElement.style.setProperty('--color-background-cardDark', colorScheme.bgCardDark);
+                  document.documentElement.style.setProperty('--color-background-mutedDark', colorScheme.bgMutedDark);
+                  document.documentElement.style.setProperty('--color-background-surfaceDark', colorScheme.bgSurfaceDark);
+                  document.documentElement.style.setProperty('--color-background-overlayDark', colorScheme.bgOverlayDark);
+                  
+                  // Apply wallpaper if exists
+                  const storedWallpaper = localStorage.getItem('theme-wallpaper');
+                  if (storedWallpaper) {
+                    document.documentElement.style.setProperty('--theme-wallpaper', 'url(' + storedWallpaper + ')');
+                    document.documentElement.classList.add('has-wallpaper');
+                  }
                 } catch (e) {}
               })();
             `
@@ -39,6 +104,7 @@ export default function RootLayout({
         <ReduxProvider>
           <ThemeProvider>
             <ToastProvider>
+              <AuthInitializer />
               <KeyboardShortcuts />
               <Clarity />
               {children}

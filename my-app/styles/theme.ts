@@ -4,7 +4,7 @@ export const theme = {
       // Changed: Primary from green to blue
       primary: '#3b82f6', // Blue (was #10b981 green)
       primaryLight: '#60a5fa', // Light blue (was #6ee7b7)
-      primaryDark: '#2563eb', // Dark blue (was #047857)
+      primaryDark: '#151821', // Dark blue (was #047857)
 
       // Changed: Secondary from dark green to purple
       secondary: '#7c3aed', // Purple (was #064e3b dark green)
@@ -20,7 +20,7 @@ export const theme = {
     background: {
       default: '#ffffff', // White background
       muted: '#f8fafc', // Very light gray
-      dark: '#0a0f1c', // Enhanced: Richer dark background (was #0f172a)
+      dark: '#151821', // Enhanced: Richer dark background (was #0f172a)
       surface: '#f1f5f9', // Light surface
       card: '#ffffff', // White card background
       // Enhanced dark mode specific colors
