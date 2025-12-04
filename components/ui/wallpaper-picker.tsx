@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { useTheme } from '@/providers/theme-provider'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 
@@ -72,10 +73,12 @@ export function WallpaperPicker() {
       {wallpaper && (
         <div className="relative group">
           <div className="relative w-full h-24 rounded-lg overflow-hidden border border-border dark:border-border-darkMode">
-            <img
+            <Image
               src={wallpaper}
               alt="Current wallpaper"
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
               onError={() => {
                 alert('Failed to load wallpaper image')
                 setWallpaper(null)

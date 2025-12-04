@@ -5,6 +5,15 @@
 
 import type { Friend } from '@/lib/interface/task'
 
+interface UserData {
+  user?: {
+    id: string
+    name: string
+    email?: string
+  }
+  password?: string
+}
+
 const FRIENDS_STORAGE_KEY = 'mock_friends'
 const ALL_USERS_STORAGE_KEY = 'mock_users' // Shared with mockAuth
 
@@ -44,10 +53,10 @@ export const mockFriendsService = {
     const friendIds = new Set(currentUserFriends.map((f) => f.id))
     
     // Convert to Friend format and filter
-    const allUsers: Friend[] = Object.entries(usersData)
+    const allUsers: Friend[] = Object.entries(usersData as Record<string, UserData>)
       .map(([email, data]) => ({
-        id: (data as any).user?.id || email,
-        name: (data as any).user?.name || email.split('@')[0],
+        id: data.user?.id || email,
+        name: data.user?.name || email.split('@')[0],
         email: email,
       }))
       .filter(
@@ -103,7 +112,7 @@ export const mockFriendsService = {
     const stored = localStorage.getItem(ALL_USERS_STORAGE_KEY)
     if (!stored) return null
     
-    const usersData = JSON.parse(stored) as Record<string, any>
+    const usersData = JSON.parse(stored) as Record<string, UserData>
     for (const [email, data] of Object.entries(usersData)) {
       if (data.user?.id === userId) {
         return {

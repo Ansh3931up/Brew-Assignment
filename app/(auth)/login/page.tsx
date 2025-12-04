@@ -78,8 +78,9 @@ export default function LoginPage() {
       await dispatch(login(data)).unwrap()
       toastService.success('Login successful!')
       router.push('/dashboard')
-    } catch (error: any) {
-      toastService.error(error?.message || 'Login failed. Please check your credentials.')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed. Please check your credentials.'
+      toastService.error(errorMessage)
     }
   }
 
@@ -131,7 +132,7 @@ export default function LoginPage() {
                 href="/signup" 
                 className="text-muted-foreground text-center mt-4 hover:text-primary text-sm transition-colors"
               >
-                Don't have an account? <span className="font-semibold">Sign up</span>
+                Don&apos;t have an account? <span className="font-semibold">Sign up</span>
               </Link>
             </div>
 

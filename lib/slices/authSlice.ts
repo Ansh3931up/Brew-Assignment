@@ -2,6 +2,19 @@
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { mockAuthService } from '@/lib/utils/mockAuth'
+import type { User } from '@/lib/interface/user'
+import type { MockUser } from '@/lib/utils/mockAuth'
+
+// Helper to convert MockUser to User
+const mockUserToUser = (mockUser: MockUser | null): User | null => {
+  if (!mockUser) return null
+  return {
+    id: mockUser.id,
+    name: mockUser.name,
+    email: mockUser.email,
+    role: 'user' as const, // Default role for mock users
+  }
+}
 
 // Mock authentication thunks - using localStorage instead of API
 export const login = createAsyncThunk(
@@ -39,14 +52,21 @@ export const initAuth = createAsyncThunk(
   }
 )
 
+interface AuthState {
+  user: User | null
+  loading: boolean
+  error: string
+  isAuthenticated: boolean
+}
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: {} as any,
+    user: null,
     loading: false,
     error: '',
     isAuthenticated: false,
-  },
+  } as AuthState,
   reducers: {
     clearError: (state) => {
       state.error = ''
@@ -61,7 +81,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
-        state.user = action?.payload?.user || {}
+        state.user = mockUserToUser(action?.payload?.user || null)
         state.isAuthenticated = !!action?.payload?.user
       })
       .addCase(login.rejected, (state, action) => {
@@ -76,7 +96,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.fulfilled, (state, action) => {
         state.loading = false
-        state.user = action?.payload?.user || {}
+        state.user = mockUserToUser(action?.payload?.user || null)
         state.isAuthenticated = !!action?.payload?.user
       })
       .addCase(signup.rejected, (state, action) => {
@@ -86,13 +106,13 @@ const authSlice = createSlice({
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
-        state.user = {}
+        state.user = null
         state.isAuthenticated = false
         state.error = ''
       })
       // Init auth (load from localStorage)
       .addCase(initAuth.fulfilled, (state, action) => {
-        state.user = action.payload.user || {}
+        state.user = mockUserToUser(action.payload.user || null)
         state.isAuthenticated = !!action.payload.user
       })
   }
