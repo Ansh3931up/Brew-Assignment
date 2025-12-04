@@ -1,0 +1,216 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '../styles/tokens.css';
+
+html,
+body {
+  background: var(--color-background-default);
+  color: var(--color-text-primary);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+/* stylelint-disable-next-line */
+@theme {
+  /* Colors from tokens.css - ShadCN UI aliases for Tailwind utilities */
+  /* These create utilities like bg-background, text-foreground, bg-primary, etc. */
+  --color-background: var(--color-background-default);
+  --color-foreground: var(--color-text-primary);
+  --color-card: var(--color-background-card);
+  --color-card-foreground: var(--color-text-primary);
+  --color-popover: var(--color-background-card);
+  --color-popover-foreground: var(--color-text-primary);
+  --color-primary: var(--color-brand-primary);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-brand-secondary);
+  --color-secondary-foreground: #ffffff;
+  --color-muted: var(--color-background-muted);
+  --color-muted-foreground: var(--color-text-secondary);
+  --color-accent: var(--color-background-muted);
+  --color-accent-foreground: var(--color-text-primary);
+  --color-destructive: var(--color-status-error);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-border-default);
+  --color-input: var(--color-border-default);
+  --color-ring: var(--color-brand-primary);
+  
+  /* Status colors - creates bg-status-success, text-status-error, etc. */
+  --color-status-success: var(--color-status-success);
+  --color-status-error: var(--color-status-error);
+  --color-status-warning: var(--color-status-warning);
+  --color-status-info: var(--color-status-info);
+  
+  /* Brand colors - creates bg-brand-primary, text-brand-secondary, etc. */
+  --color-brand-primary: var(--color-brand-primary);
+  --color-brand-primary-light: var(--color-brand-primaryLight);
+  --color-brand-primary-dark: var(--color-brand-primaryDark);
+  --color-brand-secondary: var(--color-brand-secondary);
+  --color-brand-secondary-light: var(--color-brand-secondaryLight);
+  --color-brand-secondary-dark: var(--color-brand-secondaryDark);
+  
+  /* Accent colors - creates bg-accent-theme-blue, text-accent-theme-yellow, etc. */
+  --color-accent-theme-blue: var(--color-accent-blue);
+  --color-accent-theme-yellow: var(--color-accent-yellow);
+  --color-accent-theme-purple: var(--color-accent-purple);
+  --color-accent-theme-pink: var(--color-accent-pink);
+  --color-accent-theme-green: var(--color-accent-green);
+  
+  /* Font families from Next.js font optimization */
+  --font-family-sans: var(--font-body), system-ui, sans-serif;
+  --font-family-heading: var(--font-heading), system-ui, sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  
+  /* Border radius */
+  --radius: 0.625rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+/* Enhanced Dark mode theme overrides - using only tokens.css variables */
+/* These override the @theme colors when .dark class is present */
+.dark {
+  /* Enhanced background colors */
+  --color-background: var(--color-background-dark);
+  --color-foreground: var(--color-text-primaryDark);
+  
+  /* Enhanced card colors with better contrast */
+  --color-card: var(--color-background-cardDark);
+  --color-card-foreground: var(--color-text-primaryDark);
+  --color-popover: var(--color-background-cardDark);
+  --color-popover-foreground: var(--color-text-primaryDark);
+  
+  /* Enhanced muted colors for better visual hierarchy */
+  --color-muted: var(--color-background-mutedDark);
+  --color-muted-foreground: var(--color-text-secondaryDark);
+  
+  /* Enhanced accent colors */
+  --color-accent: var(--color-background-mutedDark);
+  --color-accent-foreground: var(--color-text-primaryDark);
+  
+  /* Enhanced border colors with better contrast */
+  --color-border: var(--color-border-darkMode);
+  --color-input: var(--color-border-darkMode);
+  
+  /* Primary and secondary colors remain vibrant in dark mode */
+  /* Status colors remain the same for consistency */
+  
+  /* Smooth transitions for theme switching */
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    /* Smooth theme transitions */
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    /* Smooth transitions for theme changes */
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* All headings use Red Hat Display font */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading), system-ui, sans-serif;
+  }
+  
+  /* Enhanced dark mode styles */
+  .dark body {
+    /* Better text rendering in dark mode */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Enhanced card shadows in dark mode */
+  .dark [class*="bg-card"] {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  }
+  
+  button {
+    @apply cursor-pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  
+  /* Enhanced focus styles for dark mode */
+  .dark *:focus-visible {
+    outline-color: var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  /* Apple-style Glass Effect Utilities */
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  .glass-dark {
+    background: rgba(26, 35, 50, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+  
+  .glass-light {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+  }
+  
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(40px) saturate(200%);
+    -webkit-backdrop-filter: blur(40px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+  }
+  
+  /* Dark mode glass variants */
+  .dark .glass {
+    background: rgba(26, 35, 50, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  }
+  
+  .dark .glass-light {
+    background: rgba(26, 35, 50, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .dark .glass-strong {
+    background: rgba(26, 35, 50, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  
+  /* Glass effect with colored tints */
+  .glass-primary {
+    background: rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+  
+  .glass-secondary {
+    background: rgba(124, 58, 237, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+}
