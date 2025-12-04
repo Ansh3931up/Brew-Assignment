@@ -11,7 +11,6 @@ interface DashboardLayoutProps {
   searchQuery?: string
   onSearchChange?: (query: string) => void
   selectedCategory?: string | null
-  onCategorySelect?: (category: string | null) => void
   taskCounts?: {
     all?: number
     today?: number
@@ -27,7 +26,6 @@ export function DashboardLayout({
   searchQuery = '',
   onSearchChange = () => {},
   selectedCategory = null,
-  onCategorySelect = () => {},
   taskCounts = {},
 }: DashboardLayoutProps) {
   // Initialize sidebar state from localStorage, default to true (open) on desktop, false on mobile
@@ -66,9 +64,6 @@ export function DashboardLayout({
         <div className="hidden md:block w-[320px] lg:w-3/12 shrink-0 transition-all duration-300">
           <TaskSidebar
             selectedCategory={selectedCategory}
-            onCategorySelect={(category) => {
-              onCategorySelect(category)
-            }}
             isOpen={true}
             onClose={toggleSidebar}
             taskCounts={taskCounts}
@@ -80,13 +75,6 @@ export function DashboardLayout({
       {/* Mobile Sidebar - Fixed overlay, doesn't affect layout */}
    {isSidebarOpen &&   <TaskSidebar
         selectedCategory={selectedCategory}
-        onCategorySelect={(category) => {
-          onCategorySelect(category)
-          // Auto-close on mobile after selection
-          if (typeof window !== 'undefined' && window.innerWidth < 768) {
-            setIsSidebarOpen(false)
-          }
-        }}
         isOpen={isSidebarOpen}
         onClose={toggleSidebar}
         taskCounts={taskCounts}

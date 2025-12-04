@@ -4,11 +4,14 @@ import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import type { RootState } from '@/lib/store'
-import { TaskManagerLayout } from '@/components/task-manager/task-manager-layout'
+import { TaskContent } from '@/components/task-manager/task-content'
+import { useSearch, useTaskCounts } from './layout'
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { searchQuery } = useSearch()
+  const { setTaskCounts } = useTaskCounts()
 
   useEffect(() => {
     if (!isAuthenticated || !user || Object.keys(user).length === 0) {
@@ -27,6 +30,5 @@ export default function DashboardPage() {
     )
   }
 
-  return <TaskManagerLayout />
+  return <TaskContent selectedCategory="all" searchQuery={searchQuery} onTaskCountsChange={setTaskCounts} />
 }
-

@@ -7,6 +7,7 @@ import type { RootState } from '@/lib/store'
 import { mockTasksService } from '@/lib/utils/mockTasks'
 import type { Task } from '@/lib/interface/task'
 import { useTheme } from '@/providers/theme-provider'
+import { logger } from '@/lib/utils/logger'
 
 interface TaskContentProps {
   selectedCategory: string | null
@@ -43,7 +44,7 @@ export function TaskContent({ selectedCategory, searchQuery, onTaskCountsChange 
       setMyTasks(tasks)
       setAssignedTasks(assigned)
     } catch (error) {
-      console.error('Failed to load tasks:', error)
+      logger.error('Failed to load tasks:', error)
     } finally {
       setLoading(false)
     }
@@ -65,7 +66,7 @@ export function TaskContent({ selectedCategory, searchQuery, onTaskCountsChange 
       await mockTasksService.updateTask(user.id, taskId, { status: newStatus })
       loadTasks()
     } catch (error) {
-      console.error('Failed to update task:', error)
+      logger.error('Failed to update task:', error)
     }
   }
 
@@ -79,7 +80,7 @@ export function TaskContent({ selectedCategory, searchQuery, onTaskCountsChange 
       }
       loadTasks()
     } catch (error) {
-      console.error('Failed to clear completed tasks:', error)
+      logger.error('Failed to clear completed tasks:', error)
     }
   }
 

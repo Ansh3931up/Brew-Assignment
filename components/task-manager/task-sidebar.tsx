@@ -1,16 +1,17 @@
 'use client'
 
 import { useState, useEffect, startTransition } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { CheckCircle2, Calendar, Users, Search, UserPlus, X, List, Flag } from 'lucide-react'
 import type { RootState } from '@/lib/store'
 import { mockFriendsService } from '@/lib/utils/mockFriends'
 import type { Friend } from '@/lib/interface/task'
 import { toastService } from '@/lib/utils/toast'
+import { logger } from '@/lib/utils/logger'
 
 interface TaskSidebarProps {
   selectedCategory: string | null
-  onCategorySelect: (category: string | null) => void
   isOpen?: boolean
   onClose?: () => void
   isDesktopOpen?: boolean
@@ -32,7 +33,7 @@ const smartLists = [
   { id: 'completed', label: 'Completed', icon: CheckCircle2, color: 'bg-gray-400' },
 ]
 
-export function TaskSidebar({ selectedCategory, onCategorySelect, isOpen = true, onClose, isDesktopOpen = true, taskCounts = {} }: TaskSidebarProps) {
+export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDesktopOpen = true, taskCounts = {} }: TaskSidebarProps) {
   const { user } = useSelector((state: RootState) => state.auth)
   const [friends, setFriends] = useState<Friend[]>([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -47,7 +48,7 @@ export function TaskSidebar({ selectedCategory, onCategorySelect, isOpen = true,
         setFriends(friendsList)
       })
     } catch (error) {
-      console.error('Failed to load friends:', error)
+      logger.error('Failed to load friends:', error)
     }
   }
 
@@ -66,7 +67,7 @@ export function TaskSidebar({ selectedCategory, onCategorySelect, isOpen = true,
         setSearchResults(results)
         setShowSearchResults(true)
       } catch (error) {
-        console.error('Failed to search users:', error)
+        logger.error('Failed to search users:', error)
       }
     } else {
       setShowSearchResults(false)
@@ -98,7 +99,6 @@ export function TaskSidebar({ selectedCategory, onCategorySelect, isOpen = true,
         >
           <SidebarContent
             selectedCategory={selectedCategory}
-            onCategorySelect={onCategorySelect}
             onClose={onClose}
             taskCounts={taskCounts}
             friends={friends}
@@ -124,7 +124,6 @@ export function TaskSidebar({ selectedCategory, onCategorySelect, isOpen = true,
       >
         <SidebarContent
           selectedCategory={selectedCategory}
-          onCategorySelect={onCategorySelect}
           onClose={onClose}
           taskCounts={taskCounts}
           friends={friends}
@@ -141,7 +140,6 @@ export function TaskSidebar({ selectedCategory, onCategorySelect, isOpen = true,
 
 function SidebarContent({
   selectedCategory,
-  onCategorySelect,
   onClose,
   taskCounts,
   friends,
@@ -152,7 +150,6 @@ function SidebarContent({
   onAddFriend,
 }: {
   selectedCategory: string | null
-  onCategorySelect: (category: string | null) => void
   onClose?: () => void
   taskCounts: {
     all?: number
@@ -169,7 +166,22 @@ function SidebarContent({
   onSearch: (query: string) => void
   onAddFriend: (friend: Friend) => void
 }) {
-    return (
+  const router = useRouter()
+  const pathname = usePathname()
+
+  // Helper function to get route for category
+  const getRouteForCategory = (categoryId: string) => {
+    if (categoryId === 'all') return '/dashboard'
+    return `/dashboard/${categoryId}`
+  }
+
+  // Helper function to check if category is selected based on pathname
+  const isCategorySelected = (categoryId: string) => {
+    if (categoryId === 'all') return pathname === '/dashboard'
+    return pathname === `/dashboard/${categoryId}`
+  }
+
+  return (
       <div className="h-full flex flex-col overflow-hidden relative">
       {/* Shiny overlay for body - reduced whitish tone */}
       <div className="absolute inset-0 pointer-events-none z-0 rounded-[24px] overflow-hidden">
@@ -197,14 +209,14 @@ function SidebarContent({
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
           {smartLists.map((list) => {
             const Icon = list.icon
-            const isSelected = selectedCategory === list.id
+            const isSelected = isCategorySelected(list.id)
             const count = taskCounts[list.id as keyof typeof taskCounts] || 0
             
             return (
               <button
                 key={list.id}
                 onClick={() => {
-                  onCategorySelect(isSelected ? null : list.id)
+                  router.push(getRouteForCategory(list.id))
                   if (onClose) onClose()
                 }}
                 className={`flex ${list.color} flex-col items-start gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all text-xs sm:text-sm ${
@@ -240,11 +252,11 @@ function SidebarContent({
         <div className="px-2.5 pb-2">
           <button
             onClick={() => {
-              onCategorySelect(selectedCategory === 'friends' ? null : 'friends')
+              router.push('/dashboard/friends')
               if (onClose) onClose()
             }}
             className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-all text-sm ${
-              selectedCategory === 'friends'
+              isCategorySelected('friends')
                 ? 'bg-primary/20 dark:bg-primary/30 text-foreground dark:text-foreground'
                 : 'hover:bg-white/10 dark:hover:bg-white/5 text-foreground dark:text-foreground'
             }`}

@@ -99,7 +99,9 @@ export function TaskHeader({
     setIsDropdownOpen(false) // Close user dropdown if open
   }
 
-  const isDark = mounted && mode === 'dark'
+  // Use mounted check to prevent hydration mismatch
+  // On server, always default to light mode to match initial render
+  const isDark = mounted ? mode === 'dark' : false
 
   const colorNames: Record<ThemeColor, string> = {
     blue: 'Blue',
@@ -113,7 +115,7 @@ export function TaskHeader({
   }
 
   return (
-    <header className="h-12 sm:h-14 md:h-16 bg-background dark:bg-background-dark border-b border-border dark:border-border-darkMode flex items-center justify-between px-2 sm:px-3 md:px-6 shrink-0 relative z-10 w-full">
+    <header className="h-12 ml-4 sm:h-14 md:h-16 bg-background dark:bg-background-dark border-b border-border dark:border-border-darkMode flex items-center justify-between px-2 sm:px-3 md:px-6 shrink-0 relative z-10 mx-auto w-full">
       {/* Left Section - Menu Button */}
       <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         {/* Sidebar Toggle Button - Always visible */}
@@ -142,8 +144,9 @@ export function TaskHeader({
             className="p-1.5 sm:p-2 md:p-2.5 bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg hover:bg-background-overlayDark dark:hover:bg-background-overlayDark transition-colors shrink-0"
             aria-label="Theme settings"
             title="Theme settings"
+            suppressHydrationWarning
           >
-            {isDark ? (
+            {mounted && isDark ? (
               <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground dark:text-foreground" />
             ) : (
               <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground dark:text-foreground" />
@@ -169,9 +172,10 @@ export function TaskHeader({
                       handleThemeToggle(e)
                     }}
                     className="p-2 rounded-lg border border-border dark:border-[#2d3748] bg-background dark:bg-[#1e2535] hover:bg-accent dark:hover:bg-[#252b3a] transition-colors"
-                    aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+                    aria-label={`Switch to ${mounted && isDark ? 'light' : 'dark'} mode`}
+                    suppressHydrationWarning
                   >
-                    {isDark ? (
+                    {mounted && isDark ? (
                       <Sun className="h-4 w-4 text-foreground dark:text-[#cbd5e1]" />
                     ) : (
                       <Moon className="h-4 w-4 text-foreground dark:text-[#cbd5e1]" />

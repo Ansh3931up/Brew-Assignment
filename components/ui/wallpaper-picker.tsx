@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { useTheme } from '@/providers/theme-provider'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
+import { logger } from '@/lib/utils/logger'
 
 export function WallpaperPicker() {
   const { wallpaper, setWallpaper } = useTheme()
@@ -42,7 +43,7 @@ export function WallpaperPicker() {
       }
       reader.readAsDataURL(file)
     } catch (error) {
-      console.error('Error uploading wallpaper:', error)
+      logger.error('Error uploading wallpaper:', error)
       alert('Failed to upload wallpaper')
       setIsUploading(false)
     }
