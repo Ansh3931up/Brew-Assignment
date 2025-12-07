@@ -8,7 +8,7 @@
 
 import type { Task } from '@/lib/interface/task'
 
-export type TaskStatus = 'todo' | 'in-progress' | 'completed'
+export type TaskStatus = 'todo' | 'active' | 'completed'
 export type TaskPriority = 'low' | 'medium' | 'high'
 
 /**
@@ -75,7 +75,7 @@ export function formatPriority(priority: TaskPriority): string {
 export function formatStatus(status: TaskStatus): string {
   const statusMap: Record<TaskStatus, string> = {
     todo: 'To Do',
-    'in-progress': 'In Progress',
+    active: 'Active',
     completed: 'Done',
   }
   return statusMap[status] || status
@@ -99,7 +99,7 @@ export function getPriorityColor(priority: TaskPriority): string {
 export function getStatusColor(status: TaskStatus): string {
   const colorMap: Record<TaskStatus, string> = {
     todo: 'text-gray-500 bg-gray-500/10',
-    'in-progress': 'text-blue-500 bg-blue-500/10',
+    active: 'text-blue-500 bg-blue-500/10',
     completed: 'text-green-500 bg-green-500/10',
   }
   return colorMap[status] || colorMap.todo
@@ -167,6 +167,7 @@ export function createEmptyTask(): Omit<Task, 'id' | 'createdAt' | 'updatedAt'> 
     description: '',
     status: 'todo',
     priority: 'medium',
+    flagged: false,
     dueDate: undefined,
   }
 }

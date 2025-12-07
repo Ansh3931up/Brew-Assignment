@@ -1,14 +1,15 @@
 'use client'
 
-import { useState, useEffect, startTransition } from 'react'
+import { useState, useEffect, useRef, startTransition } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSelector } from 'react-redux'
-import { CheckCircle2, Calendar, Users, Search, UserPlus, X, List, Flag, Trash2, Check } from 'lucide-react'
+import { CheckCircle2, Calendar, Users, Search, UserPlus, X, List, Flag, Trash2, Check, AlertCircle } from 'lucide-react'
 import type { RootState } from '@/lib/store'
-import { mockFriendsService, type FriendRequest } from '@/lib/utils/mockFriends'
+import { friendService, type FriendRequest } from '@/lib/api/friendService'
 import type { Friend } from '@/lib/interface/task'
 import { toastService } from '@/lib/utils/toast'
 import { logger } from '@/lib/utils/logger'
+import { getErrorMessage, isRateLimitError } from '@/lib/utils/errorHandler'
 import { SendFriendRequestModal } from './send-friend-request-modal'
 
 interface TaskSidebarProps {
@@ -23,6 +24,7 @@ interface TaskSidebarProps {
     flagged?: number
     completed?: number
     friends?: number
+    missed?: number
   }
 }
 
@@ -31,6 +33,7 @@ const smartLists = [
   { id: 'scheduled', label: 'Scheduled', icon: Calendar, color: 'bg-red-500' },
   { id: 'all', label: 'All', icon: List, color: 'bg-gray-500' },
   { id: 'flagged', label: 'Flagged', icon: Flag, color: 'bg-orange-500' },
+  { id: 'missed', label: 'Missed', icon: AlertCircle, color: 'bg-yellow-500' },
   { id: 'completed', label: 'Completed', icon: CheckCircle2, color: 'bg-gray-400' },
 ]
 
@@ -47,24 +50,32 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
   const loadFriends = async () => {
     if (!user?.id) return
     try {
-      const friendsList = await mockFriendsService.getFriends(user.id)
+      const friendsList = await friendService.getFriends()
       startTransition(() => {
-        setFriends(friendsList)
+        setFriends(friendsList.map(f => ({ id: f.id, name: f.name, email: f.email })))
       })
     } catch (error) {
       logger.error('Failed to load friends:', error)
+      const errorMessage = getErrorMessage(error)
+      if (!isRateLimitError(error)) {
+        toastService.error(errorMessage || 'Failed to load friends')
+      }
     }
   }
 
   const loadFriendRequests = async () => {
     if (!user?.id) return
     try {
-      const requests = await mockFriendsService.getFriendRequests(user.id)
+      const requests = await friendService.getFriendRequests()
       startTransition(() => {
         setFriendRequests(requests)
       })
     } catch (error) {
       logger.error('Failed to load friend requests:', error)
+      const errorMessage = getErrorMessage(error)
+      if (!isRateLimitError(error)) {
+        toastService.error(errorMessage || 'Failed to load friend requests')
+      }
     }
   }
 
@@ -76,43 +87,82 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
+  
   const handleSearch = async (query: string) => {
     setSearchQuery(query)
-    if (query.trim().length > 0 && user?.id) {
+    
+    // Clear previous debounce
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current)
+    }
+    
+    if (query.trim().length === 0) {
+      setShowSearchResults(false)
+      return
+    }
+    
+    if (!user?.id) return
+    
+    // Debounce search to prevent rate limiting
+    searchDebounceRef.current = setTimeout(async () => {
       try {
-        const results = await mockFriendsService.searchUsers(query, user.id)
-        setSearchResults(results)
+        const results = await friendService.searchUsers(query)
+        setSearchResults(results.map(r => ({ id: r.id, name: r.name, email: r.email })))
         setShowSearchResults(true)
       } catch (error) {
         logger.error('Failed to search users:', error)
+        const errorMessage = getErrorMessage(error)
+        if (isRateLimitError(error)) {
+          toastService.error('Too many requests. Please wait a moment before searching again.')
+        } else {
+          toastService.error(errorMessage || 'Failed to search users')
+        }
+        setShowSearchResults(false)
       }
-    } else {
-      setShowSearchResults(false)
-    }
+    }, 500) // 500ms debounce
   }
 
   const handleSendRequestFromSearch = async (friend: Friend) => {
     if (!user?.id) return
     try {
-      await mockFriendsService.sendFriendRequest(user.id, friend.email)
+      await friendService.sendFriendRequest(friend.id)
       toastService.success(`Friend request sent to ${friend.name}!`)
       setSearchQuery('')
       setShowSearchResults(false)
       loadFriendRequests()
     } catch (error: unknown) {
-      toastService.error((error as Error)?.message || 'Failed to send friend request')
+      logger.error('Failed to send friend request:', error)
+      const errorMessage = getErrorMessage(error)
+      if (isRateLimitError(error)) {
+        toastService.error('Too many requests. Please wait a moment before sending another request.')
+      } else {
+        toastService.error(errorMessage || 'Failed to send friend request')
+      }
     }
   }
 
   const handleSendFriendRequest = async (email: string) => {
     if (!user?.id) return
     try {
-      await mockFriendsService.sendFriendRequest(user.id, email)
+      // First search for the user by email
+      const users = await friendService.searchUsers(email)
+      if (users.length === 0) {
+        throw new Error('User not found')
+      }
+      const userToAdd = users[0]
+      await friendService.sendFriendRequest(userToAdd.id)
       toastService.success(`Friend request sent to ${email}!`)
       setIsSendRequestModalOpen(false)
       loadFriendRequests()
     } catch (error: unknown) {
-      toastService.error((error as Error)?.message || 'Failed to send friend request')
+      logger.error('Failed to send friend request:', error)
+      const errorMessage = getErrorMessage(error)
+      if (isRateLimitError(error)) {
+        toastService.error('Too many requests. Please wait a moment before sending another request.')
+      } else {
+        toastService.error(errorMessage || 'Failed to send friend request')
+      }
       throw error
     }
   }
@@ -120,7 +170,7 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
   const handleAcceptRequest = async (requestId: string) => {
     if (!user?.id) return
     try {
-      await mockFriendsService.acceptFriendRequest(requestId, user.id)
+      await friendService.acceptFriendRequest(requestId)
       toastService.success('Friend request accepted!')
       loadFriends()
       loadFriendRequests()
@@ -132,7 +182,7 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
   const handleRejectRequest = async (requestId: string) => {
     if (!user?.id) return
     try {
-      await mockFriendsService.rejectFriendRequest(requestId, user.id)
+      await friendService.rejectFriendRequest(requestId)
       toastService.success('Friend request rejected')
       loadFriendRequests()
     } catch (error: unknown) {
@@ -143,7 +193,13 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
   const handleDeleteFriend = async (friend: Friend) => {
     if (!user?.id) return
     try {
-      await mockFriendsService.removeFriend(user.id, friend.id)
+      // Find the friendship ID from the friends list
+      const friendsList = await friendService.getFriends()
+      const friendship = friendsList.find(f => f.id === friend.id)
+      if (!friendship) {
+        throw new Error('Friendship not found')
+      }
+      await friendService.removeFriend(friendship.friendshipId)
       toastService.success(`Removed ${friend.name} from friends`)
       loadFriends()
       setFriendToDelete(null)
@@ -334,7 +390,9 @@ function SidebarContent({
                   <Icon className="h-3 w-3 sm:h-4 sm:w-4 text-white font-extrabold" />
                 </div>
                 <div className="flex flex-row w-full justify-between items-center gap-0.5">
-                  <span className="font-medium text-xs sm:text-sm text-center truncate">{list.label}</span>
+                  <span className={`font-medium text-xs sm:text-sm text-center truncate `}>
+                    {list.label}
+                  </span>
                   <span className={`text-xs sm:text-sm font-bold ${isSelected ? 'text-foreground dark:text-foreground' : 'text-muted-foreground dark:text-muted-foreground'}`}>
                     {count}
                   </span>
@@ -384,9 +442,9 @@ function SidebarContent({
             </h3>
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {friendRequests.map((request) => {
-                const isIncoming = request.toEmail === currentUserEmail
-                const displayEmail = isIncoming ? request.fromEmail : request.toEmail
-                const displayName = isIncoming ? request.fromName : undefined
+                const isIncoming = request.recipient.email === currentUserEmail
+                const displayEmail = isIncoming ? request.requester.email : request.recipient.email
+                const displayName = isIncoming ? request.requester.name : request.recipient.name
 
                 return (
                   <div
@@ -458,7 +516,7 @@ function SidebarContent({
                 {searchResults.map((result) => {
                   // Check if request already sent to this user
                   const requestSent = friendRequests.some(
-                    (r) => r.toEmail === result.email && r.status === 'pending'
+                    (r) => r.recipient.email === result.email && r.status === 'pending'
                   )
                   
                   return (

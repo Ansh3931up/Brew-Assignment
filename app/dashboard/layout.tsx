@@ -1,8 +1,12 @@
 'use client'
 
-import { useState, createContext, useContext } from 'react'
+import { useState, createContext, useContext, useEffect, useCallback } from 'react'
 import { usePathname } from 'next/navigation'
+import { useSelector } from 'react-redux'
 import { DashboardLayout } from '@/components/dashboard/dashboard-layout'
+import { dashboardService } from '@/lib/api/taskService'
+import type { RootState } from '@/lib/store'
+import { logger } from '@/lib/utils/logger'
 
 // Create context for search query
 const SearchContext = createContext<{
@@ -22,6 +26,7 @@ const TaskCountsContext = createContext<{
     flagged?: number
     completed?: number
     friends?: number
+    missed?: number
   }
   setTaskCounts: (counts: {
     all?: number
@@ -30,6 +35,7 @@ const TaskCountsContext = createContext<{
     flagged?: number
     completed?: number
     friends?: number
+    missed?: number
   }) => void
 }>({
   taskCounts: {},
@@ -39,12 +45,41 @@ const TaskCountsContext = createContext<{
 export const useSearch = () => useContext(SearchContext)
 export const useTaskCounts = () => useContext(TaskCountsContext)
 
+// Export function to refresh stats - can be called from anywhere
+export const useRefreshStats = () => {
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  const { setTaskCounts } = useTaskCounts()
+  
+  return useCallback(async () => {
+    if (!isAuthenticated || !user?.id) {
+      return
+    }
+
+    try {
+      const stats = await dashboardService.getDashboardStats()
+      setTaskCounts({
+        all: stats.all || 0,
+        today: stats.today || 0,
+        scheduled: stats.scheduled || 0,
+        flagged: stats.flagged || 0,
+        completed: stats.completed || 0,
+        friends: stats.friends || 0,
+        missed: stats.missed || 0,
+      })
+      logger.info('Dashboard stats refreshed successfully', stats)
+    } catch (error) {
+      logger.error('Failed to refresh dashboard stats:', error)
+    }
+  }, [isAuthenticated, user?.id, setTaskCounts])
+}
+
 export default function DashboardLayoutWrapper({
   children,
 }: {
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
   const [searchQuery, setSearchQuery] = useState('')
   const [taskCounts, setTaskCounts] = useState({
     all: 0,
@@ -53,7 +88,40 @@ export default function DashboardLayoutWrapper({
     flagged: 0,
     completed: 0,
     friends: 0,
+    missed: 0,
   })
+  const [loadingStats, setLoadingStats] = useState(false)
+
+  // Fetch dashboard stats when user is authenticated
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      if (!isAuthenticated || !user?.id) {
+        return
+      }
+
+      setLoadingStats(true)
+      try {
+        const stats = await dashboardService.getDashboardStats()
+        setTaskCounts({
+          all: stats.all || 0,
+          today: stats.today || 0,
+          scheduled: stats.scheduled || 0,
+          flagged: stats.flagged || 0,
+          completed: stats.completed || 0,
+          friends: stats.friends || 0,
+          missed: stats.missed || 0,
+        })
+        logger.info('Dashboard stats loaded successfully', stats)
+      } catch (error) {
+        logger.error('Failed to fetch dashboard stats:', error)
+        // Don't show error to user, just log it
+      } finally {
+        setLoadingStats(false)
+      }
+    }
+
+    fetchDashboardStats()
+  }, [isAuthenticated, user?.id])
 
   // Extract category from pathname
   const getCategoryFromPath = () => {
@@ -61,6 +129,7 @@ export default function DashboardLayoutWrapper({
     if (pathname === '/dashboard/scheduled') return 'scheduled'
     if (pathname === '/dashboard/flagged') return 'flagged'
     if (pathname === '/dashboard/completed') return 'completed'
+    if (pathname === '/dashboard/missed') return 'missed'
     if (pathname === '/dashboard/friends') return 'friends'
     return 'all'
   }

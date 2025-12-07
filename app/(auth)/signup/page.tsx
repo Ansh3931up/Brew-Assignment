@@ -74,8 +74,8 @@ export default function SignupPage() {
   }
 
   const handleGoogleSignup = () => {
-    // TODO: Implement Google OAuth
-    toastService.info('Google OAuth will be implemented soon')
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+    window.location.href = `${apiUrl}/api/auth/google`
   }
 
   if (user && Object.keys(user).length > 0) {

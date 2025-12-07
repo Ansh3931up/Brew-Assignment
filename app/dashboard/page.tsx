@@ -36,13 +36,7 @@ export default function DashboardPage() {
       searchQuery={searchQuery}
       onTaskCountsChange={setTaskCounts}
       onAddTask={() => {
-        // TODO: Open add task modal
-      }}
-      onUndo={() => {
-        // TODO: Implement undo
-      }}
-      onRedo={() => {
-        // TODO: Implement redo
+        // Handled internally by TaskContent
       }}
     />
   )

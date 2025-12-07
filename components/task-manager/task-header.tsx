@@ -125,7 +125,7 @@ export function TaskHeader({
   }
 
   return (
-    <header className="h-12 ml-4 sm:h-14 md:h-16 bg-background dark:bg-background-dark border-b border-border dark:border-border-darkMode flex items-center justify-between px-2 sm:px-3 md:px-6 shrink-0 relative z-10 mx-auto w-full">
+    <header className="h-12 ml-4 sm:h-14 md:h-16 bg-background dark:bg-background-dark border-b border-border dark:border-border-darkMode flex items-center justify-between px-2 sm:px-3 md:px-6 shrink-0 relative z-10 mx-auto w-full" suppressHydrationWarning>
       {/* Left Section - Menu Button */}
       <div className="flex items-center gap-1 sm:gap-2 min-w-0">
         {/* Sidebar Toggle Button - Always visible */}
@@ -286,10 +286,16 @@ export function TaskHeader({
             <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground dark:text-text-mutedDark" />
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search all tasks..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-8 sm:pl-9 pr-2 sm:pr-3 py-1 sm:py-1.5 w-[120px] sm:w-[140px] md:w-[180px] lg:w-[220px] bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg text-xs sm:text-sm text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchQuery.trim()) {
+                  // Navigate to search results or filter current view
+                  e.preventDefault()
+                }
+              }}
+              className="pl-8 sm:pl-9 pr-2 sm:pr-3 py-1 sm:py-1.5 w-[120px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg text-xs sm:text-sm text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
         </div>

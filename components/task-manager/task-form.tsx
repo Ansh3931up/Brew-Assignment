@@ -13,7 +13,7 @@ interface TaskFormProps {
   isLoading?: boolean
 }
 
-type TaskStatus = 'todo' | 'in-progress' | 'completed'
+type TaskStatus = 'todo' | 'active' | 'completed'
 type TaskPriority = 'low' | 'medium' | 'high'
 
 export function TaskForm({ task, isOpen, onClose, onSubmit, isLoading = false }: TaskFormProps) {
@@ -22,6 +22,7 @@ export function TaskForm({ task, isOpen, onClose, onSubmit, isLoading = false }:
   const [dueDate, setDueDate] = useState('')
   const [priority, setPriority] = useState<TaskPriority>('medium')
   const [status, setStatus] = useState<TaskStatus>('todo')
+  const [flagged, setFlagged] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const formKey = task?.id || 'new'
 
@@ -37,6 +38,7 @@ export function TaskForm({ task, isOpen, onClose, onSubmit, isLoading = false }:
         setDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '')
         setPriority(task.priority || 'medium')
         setStatus(task.status || 'todo')
+        setFlagged(task.flagged || false)
       } else {
         // Reset form for new task
         setTitle('')
@@ -44,6 +46,7 @@ export function TaskForm({ task, isOpen, onClose, onSubmit, isLoading = false }:
         setDueDate('')
         setPriority('medium')
         setStatus('todo')
+        setFlagged(false)
       }
       setErrors({})
     }, 0)
@@ -85,6 +88,7 @@ export function TaskForm({ task, isOpen, onClose, onSubmit, isLoading = false }:
         dueDate: dueDate || undefined,
         priority,
         status,
+        flagged,
         assignedBy: task?.assignedBy,
         assignedByEmail: task?.assignedByEmail,
       })
@@ -235,7 +239,7 @@ export function TaskForm({ task, isOpen, onClose, onSubmit, isLoading = false }:
               disabled={isLoading}
             >
               <option value="todo">To Do</option>
-              <option value="in-progress">In Progress</option>
+              <option value="active">Active</option>
               <option value="completed">Done</option>
             </select>
           </div>

@@ -1,54 +1,97 @@
 'use client'
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { mockAuthService } from '@/lib/utils/mockAuth'
+import { authService } from '@/lib/api/authService'
 import type { User } from '@/lib/interface/user'
-import type { MockUser } from '@/lib/utils/mockAuth'
 
-// Helper to convert MockUser to User
-const mockUserToUser = (mockUser: MockUser | null): User | null => {
-  if (!mockUser) return null
+// Helper to convert API user to User
+const apiUserToUser = (apiUser: { id: string; name: string; email: string } | null): User | null => {
+  if (!apiUser) return null
   return {
-    id: mockUser.id,
-    name: mockUser.name,
-    email: mockUser.email,
-    role: 'user' as const, // Default role for mock users
+    id: apiUser.id,
+    name: apiUser.name,
+    email: apiUser.email,
+    role: 'user' as const,
   }
 }
 
-// Mock authentication thunks - using localStorage instead of API
+// Authentication thunks - using real API
 export const login = createAsyncThunk(
   'auth/login',
   async (payload: { email: string; password: string }) => {
-    const response = await mockAuthService.login(payload)
-    mockAuthService.setCurrentUser(response.user, response.token)
-    return { user: response.user, token: response.token }
+    const response = await authService.login(payload)
+    // Extract data from API response structure: { success, data: { user, token }, message }
+    const user = response.data.user
+    const token = response.data.token
+    
+    // Store token and user in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', token)
+      localStorage.setItem('current_user', JSON.stringify(user))
+    }
+    return { user, token }
   }
 )
 
 export const signup = createAsyncThunk(
   'auth/signup',
   async (payload: { name: string; email: string; password: string }) => {
-    const response = await mockAuthService.signup(payload)
-    mockAuthService.setCurrentUser(response.user, response.token)
-    return { user: response.user, token: response.token }
+    const response = await authService.register(payload)
+    // Extract data from API response structure: { success, data: { user, token }, message }
+    const user = response.data.user
+    const token = response.data.token
+    
+    // Store token and user in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', token)
+      localStorage.setItem('current_user', JSON.stringify(user))
+    }
+    return { user, token }
   }
 )
 
 export const logout = createAsyncThunk(
   'auth/logout',
   async () => {
-    mockAuthService.logout()
+    try {
+      await authService.logout()
+    } catch {
+      // Ignore logout errors
+    }
+    // Clear localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('current_user')
+    }
     return null
   }
 )
 
-// Initialize auth state from localStorage
+// Initialize auth state from localStorage and verify with API
 export const initAuth = createAsyncThunk(
   'auth/init',
   async () => {
-    const user = mockAuthService.getCurrentUser()
-    return user ? { user } : { user: null }
+    if (typeof window === 'undefined') {
+      return { user: null }
+    }
+
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      return { user: null }
+    }
+
+    try {
+      // Verify token with API
+      const response = await authService.getCurrentUser()
+      // Extract user from API response structure: { success, data: { user }, message }
+      const user = response.data?.user || null
+      return { user }
+    } catch {
+      // Token invalid, clear storage
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('current_user')
+      return { user: null }
+    }
   }
 )
 
@@ -81,7 +124,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
-        state.user = mockUserToUser(action?.payload?.user || null)
+        state.user = apiUserToUser(action?.payload?.user || null)
         state.isAuthenticated = !!action?.payload?.user
       })
       .addCase(login.rejected, (state, action) => {
@@ -96,7 +139,7 @@ const authSlice = createSlice({
       })
       .addCase(signup.fulfilled, (state, action) => {
         state.loading = false
-        state.user = mockUserToUser(action?.payload?.user || null)
+        state.user = apiUserToUser(action?.payload?.user || null)
         state.isAuthenticated = !!action?.payload?.user
       })
       .addCase(signup.rejected, (state, action) => {
@@ -110,9 +153,9 @@ const authSlice = createSlice({
         state.isAuthenticated = false
         state.error = ''
       })
-      // Init auth (load from localStorage)
+      // Init auth (load from localStorage and verify with API)
       .addCase(initAuth.fulfilled, (state, action) => {
-        state.user = mockUserToUser(action.payload.user || null)
+        state.user = apiUserToUser(action.payload.user || null)
         state.isAuthenticated = !!action.payload.user
       })
   }

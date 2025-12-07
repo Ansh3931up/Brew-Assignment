@@ -28,15 +28,24 @@ export function DashboardLayout({
   selectedCategory = null,
   taskCounts = {},
 }: DashboardLayoutProps) {
-  // Initialize sidebar state from localStorage, default to true (open) on desktop, false on mobile
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window === 'undefined') return true
-    const stored = localStorage.getItem('sidebar-open')
-    if (stored !== null) return stored === 'true'
-    // Default: open on desktop (md+), closed on mobile
-    return window.innerWidth >= 768
-  })
+  // Initialize sidebar state - always start with false to avoid hydration mismatch
+  // Will be updated after mount based on localStorage/window size
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { wallpaper } = useTheme()
+
+  // Initialize sidebar state from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('sidebar-open')
+      if (stored !== null) {
+        setIsSidebarOpen(stored === 'true')
+      } else {
+        // Default: open on desktop (md+), closed on mobile
+        setIsSidebarOpen(window.innerWidth >= 768)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Persist sidebar state to localStorage
   useEffect(() => {
