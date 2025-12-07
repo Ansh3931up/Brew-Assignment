@@ -834,7 +834,7 @@ export function TaskContent({
             
             {/* Hover buttons - always show on hover, or when selected */}
             <div className={`flex items-center gap-1 sm:gap-1.5 shrink-0 transition-opacity ${
-              selectedTaskId === task.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              selectedTaskId === task.id ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'
             }`}>
               <div className="relative">
                 <button
@@ -947,12 +947,12 @@ export function TaskContent({
   }
 
   return (
-    <div className={`flex-1 overflow-y-auto transition-colors duration-300 ${wallpaper ? 'bg-transparent dark:bg-transparent' : 'bg-background dark:bg-background-dark'}`}>
+    <div className={`flex-1 h-full overflow-y-auto transition-colors duration-300 ${wallpaper ? 'bg-transparent dark:bg-transparent' : 'bg-background dark:bg-background-dark'}`}>
       <div className="mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-8 space-y-4 sm:space-y-6 md:space-y-8">
         {/* My Tasks Section */}
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4 gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 md:mb-4 gap-2 sm:gap-4">
             <div className="min-w-0 flex-1">
               <div className="hidden sm:block">
                 <p className="text-[10px] sm:text-xs text-muted-foreground dark:text-text-mutedDark uppercase tracking-wider">TASK MANAGER</p>
@@ -963,15 +963,15 @@ export function TaskContent({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {/* Active Filter Indicator */}
               {selectedCategory && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40 rounded-lg mr-2 sm:mr-4">
-                  <Filter className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs sm:text-sm font-medium text-primary capitalize">
+                <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40 rounded-lg">
+                  <Filter className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
+                  <span className="text-[10px] sm:text-xs md:text-sm font-medium text-primary capitalize whitespace-nowrap">
                     {selectedCategory === 'all' ? 'All Tasks' : selectedCategory}
                   </span>
-                  <span className="text-xs text-muted-foreground dark:text-text-mutedDark">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground dark:text-text-mutedDark whitespace-nowrap">
                     ({myIncompleteTasks.length + myCompletedTasks.length})
                   </span>
                 </div>
@@ -984,7 +984,7 @@ export function TaskContent({
                     setIsCreateModalOpen(true)
                     if (onAddTask) onAddTask()
                   }}
-                  className="p-1.5 sm:p-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-colors shrink-0"
+                  className="p-1.5 sm:p-2 bg-primary hover:bg-primary/90 active:bg-primary/80 text-white rounded-lg transition-colors shrink-0 touch-manipulation"
                   aria-label="Add new task"
                   title="Add Task"
                 >
@@ -993,9 +993,9 @@ export function TaskContent({
                 <button
                   onClick={handleUndo}
                   disabled={!canUndo}
-                  className={`p-1.5 sm:p-2 bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg transition-colors shrink-0 ${
+                  className={`p-1.5 sm:p-2 bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg transition-colors shrink-0 touch-manipulation ${
                     canUndo
-                      ? 'hover:bg-background-overlayDark dark:hover:bg-background-overlayDark cursor-pointer'
+                      ? 'hover:bg-background-overlayDark dark:hover:bg-background-overlayDark active:bg-background-overlayDark dark:active:bg-background-overlayDark cursor-pointer'
                       : 'opacity-50 cursor-not-allowed'
                   }`}
                   aria-label="Undo"
@@ -1006,9 +1006,9 @@ export function TaskContent({
                 <button
                   onClick={handleRedo}
                   disabled={!canRedo}
-                  className={`p-1.5 sm:p-2 bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg transition-colors shrink-0 ${
+                  className={`p-1.5 sm:p-2 bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg transition-colors shrink-0 touch-manipulation ${
                     canRedo
-                      ? 'hover:bg-background-overlayDark dark:hover:bg-background-overlayDark cursor-pointer'
+                      ? 'hover:bg-background-overlayDark dark:hover:bg-background-overlayDark active:bg-background-overlayDark dark:active:bg-background-overlayDark cursor-pointer'
                       : 'opacity-50 cursor-not-allowed'
                   }`}
                   aria-label="Redo"
@@ -1018,27 +1018,27 @@ export function TaskContent({
                 </button>
               </div>
 
-              {/* Show All Toggle */}
+              {/* Show All Toggle - Compact on mobile */}
               <button
                 onClick={() => setShowCompletedTasks(!showCompletedTasks)}
-                className="flex flex-col items-end gap-1 px-3 py-2 rounded-lg border border-border dark:border-border-darkMode hover:bg-background-overlayDark dark:hover:bg-background-overlayDark transition-all group shrink-0"
+                className="flex flex-row sm:flex-col items-center sm:items-end gap-1.5 sm:gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-border dark:border-border-darkMode hover:bg-background-overlayDark dark:hover:bg-background-overlayDark active:bg-background-overlayDark dark:active:bg-background-overlayDark transition-all group shrink-0 touch-manipulation"
                 title={showCompletedTasks ? 'Hide completed tasks' : 'Show completed tasks'}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {showCompletedTasks ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground" />
+                    <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground group-active:text-foreground" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground" />
+                    <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground group-active:text-foreground" />
                   )}
-                  <div className="text-brand-primary dark:text-brand-primary text-base sm:text-lg md:text-xl font-bold">
+                  <div className="text-brand-primary dark:text-brand-primary text-sm sm:text-base md:text-lg lg:text-xl font-bold">
                     {showCompletedTasks ? myDisplayTasks.length : myIncompleteTasks.length}
                   </div>
                 </div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground transition-colors">
+                <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground group-active:text-foreground transition-colors whitespace-nowrap">
                   {showCompletedTasks ? 'Showing All' : 'Show All'}
                 </div>
                 {myCompletedTasks.length > 0 && (
-                  <div className="text-[9px] text-muted-foreground dark:text-text-mutedDark">
+                  <div className="hidden sm:block text-[9px] text-muted-foreground dark:text-text-mutedDark">
                     {myCompletedTasks.length} completed
                   </div>
                 )}
@@ -1083,29 +1083,29 @@ export function TaskContent({
         {/* Friends Assigned Tasks Section */}
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between mb-2 sm:mb-3 md:mb-4 gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 sm:mb-3 md:mb-4 gap-2 sm:gap-4">
             <h2 className="text-base sm:text-lg md:text-xl font-bold text-brand-primary dark:text-brand-primary min-w-0 flex-1">Friends Assigned Tasks</h2>
-            {/* Show All Toggle */}
+            {/* Show All Toggle - Compact on mobile */}
             <button
               onClick={() => setShowAssignedCompletedTasks(!showAssignedCompletedTasks)}
-              className="flex flex-col items-end gap-1 px-3 py-2 rounded-lg border border-border dark:border-border-darkMode hover:bg-background-overlayDark dark:hover:bg-background-overlayDark transition-all group shrink-0"
+              className="flex flex-row sm:flex-col items-center sm:items-end gap-1.5 sm:gap-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border border-border dark:border-border-darkMode hover:bg-background-overlayDark dark:hover:bg-background-overlayDark active:bg-background-overlayDark dark:active:bg-background-overlayDark transition-all group shrink-0 touch-manipulation self-start sm:self-auto"
               title={showAssignedCompletedTasks ? 'Hide completed tasks' : 'Show completed tasks'}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 {showAssignedCompletedTasks ? (
-                  <EyeOff className="h-4 w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground" />
+                  <EyeOff className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground group-active:text-foreground" />
                 ) : (
-                  <Eye className="h-4 w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground" />
+                  <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground group-active:text-foreground" />
                 )}
-                <div className="text-brand-primary dark:text-brand-primary text-base sm:text-lg md:text-xl font-bold">
+                <div className="text-brand-primary dark:text-brand-primary text-sm sm:text-base md:text-lg lg:text-xl font-bold">
                   {showAssignedCompletedTasks ? assignedDisplayTasks.length : assignedIncompleteTasks.length}
                 </div>
               </div>
-              <div className="text-[10px] sm:text-xs text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground transition-colors">
+              <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground dark:text-text-mutedDark group-hover:text-foreground group-active:text-foreground transition-colors whitespace-nowrap">
                 {showAssignedCompletedTasks ? 'Showing All' : 'Show All'}
               </div>
               {assignedCompletedTasks.length > 0 && (
-                <div className="text-[9px] text-muted-foreground dark:text-text-mutedDark">
+                <div className="hidden sm:block text-[9px] text-muted-foreground dark:text-text-mutedDark">
                   {assignedCompletedTasks.length} completed
                 </div>
               )}

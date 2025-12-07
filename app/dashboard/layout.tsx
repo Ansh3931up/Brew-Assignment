@@ -81,7 +81,7 @@ export default function DashboardLayoutWrapper({
   const pathname = usePathname()
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
   const [searchQuery, setSearchQuery] = useState('')
-  const [taskCounts, setTaskCounts] = useState({
+  const [taskCountsState, setTaskCountsState] = useState({
     all: 0,
     today: 0,
     scheduled: 0,
@@ -91,6 +91,30 @@ export default function DashboardLayoutWrapper({
     missed: 0,
   })
   const [loadingStats, setLoadingStats] = useState(false)
+
+  // Wrapper function to handle partial updates
+  const setTaskCounts = useCallback((counts: {
+    all?: number
+    today?: number
+    scheduled?: number
+    flagged?: number
+    completed?: number
+    friends?: number
+    missed?: number
+  }) => {
+    setTaskCountsState((prev) => ({ ...prev, ...counts }))
+  }, [])
+
+  // Convert state to context format (with optional properties)
+  const taskCounts = {
+    all: taskCountsState.all,
+    today: taskCountsState.today,
+    scheduled: taskCountsState.scheduled,
+    flagged: taskCountsState.flagged,
+    completed: taskCountsState.completed,
+    friends: taskCountsState.friends,
+    missed: taskCountsState.missed,
+  }
 
   // Fetch dashboard stats when user is authenticated
   useEffect(() => {
@@ -102,7 +126,7 @@ export default function DashboardLayoutWrapper({
       setLoadingStats(true)
       try {
         const stats = await dashboardService.getDashboardStats()
-        setTaskCounts({
+        setTaskCountsState({
           all: stats.all || 0,
           today: stats.today || 0,
           scheduled: stats.scheduled || 0,
