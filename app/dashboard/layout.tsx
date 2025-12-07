@@ -17,26 +17,21 @@ const SearchContext = createContext<{
   setSearchQuery: () => {},
 })
 
+// Type for task counts
+type TaskCounts = {
+  all?: number
+  today?: number
+  scheduled?: number
+  flagged?: number
+  completed?: number
+  friends?: number
+  missed?: number
+}
+
 // Create context for task counts
 const TaskCountsContext = createContext<{
-  taskCounts: {
-    all?: number
-    today?: number
-    scheduled?: number
-    flagged?: number
-    completed?: number
-    friends?: number
-    missed?: number
-  }
-  setTaskCounts: (counts: {
-    all?: number
-    today?: number
-    scheduled?: number
-    flagged?: number
-    completed?: number
-    friends?: number
-    missed?: number
-  }) => void
+  taskCounts: TaskCounts
+  setTaskCounts: (counts: TaskCounts) => void
 }>({
   taskCounts: {},
   setTaskCounts: () => {},
@@ -93,15 +88,7 @@ export default function DashboardLayoutWrapper({
   const [loadingStats, setLoadingStats] = useState(false)
 
   // Wrapper function to handle partial updates
-  const setTaskCounts = useCallback((counts: {
-    all?: number
-    today?: number
-    scheduled?: number
-    flagged?: number
-    completed?: number
-    friends?: number
-    missed?: number
-  }) => {
+  const setTaskCounts = useCallback((counts: TaskCounts) => {
     setTaskCountsState((prev) => ({ ...prev, ...counts }))
   }, [])
 
