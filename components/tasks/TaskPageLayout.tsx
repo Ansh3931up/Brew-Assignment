@@ -53,11 +53,17 @@ export function TaskPageLayout({ children, title }: TaskPageLayoutProps) {
               {title}
             </h1>
           )}
-          {React.cloneElement(children as React.ReactElement, {
-            onEdit: handleEditTask,
-            onDelete: handleDeleteTask,
-            searchQuery,
-          })}
+          {React.isValidElement(children)
+            ? React.cloneElement(children as React.ReactElement<{
+                onEdit?: (task: Task) => void;
+                onDelete?: (task: Task) => void;
+                searchQuery?: string;
+              }>, {
+                onEdit: handleEditTask,
+                onDelete: handleDeleteTask,
+                searchQuery,
+              })
+            : children}
         </main>
       </div>
 

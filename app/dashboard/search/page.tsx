@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { TaskContent } from '@/components/task-manager/task-content'
 import { useTaskCounts, useSearch } from '../layout'
 import { taskService } from '@/lib/api/taskService'
 import { logger } from '@/lib/utils/logger'
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { setTaskCounts } = useTaskCounts()
@@ -110,5 +110,23 @@ export default function SearchPage() {
         // TODO: Implement redo
       }}
     />
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-8">
+          <div className="text-center py-12">
+            <p className="text-sm text-muted-foreground dark:text-text-mutedDark">
+              Loading...
+            </p>
+          </div>
+        </div>
+      </div>
+    }>
+      <SearchPageContent />
+    </Suspense>
   )
 }
