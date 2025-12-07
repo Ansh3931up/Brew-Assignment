@@ -12,6 +12,7 @@ import { AnimatedBackground } from '@/components/ui/animated-background'
 import { login } from '@/lib/slices/authSlice'
 import type { AppDispatch, RootState } from '@/lib/store'
 import { toastService } from '@/lib/utils/toast'
+import { authService } from '@/lib/api/authService'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -33,6 +34,7 @@ export default function LoginPage() {
     }
     return false
   })
+  const [googleAuthEnabled, setGoogleAuthEnabled] = useState<boolean | null>(null)
 
   const {
     register,
@@ -63,6 +65,17 @@ export default function LoginPage() {
       router.push('/dashboard')
     }
   }, [user, router])
+
+  // Check Google OAuth status
+  useEffect(() => {
+    authService.checkGoogleAuthStatus()
+      .then((status) => {
+        setGoogleAuthEnabled(status.enabled)
+      })
+      .catch(() => {
+        setGoogleAuthEnabled(false)
+      })
+  }, [])
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -231,12 +244,26 @@ export default function LoginPage() {
             </div>
 
             {/* Google OAuth Button */}
+            {googleAuthEnabled === false && (
+              <div className="mb-4 p-3 bg-muted/50 border border-muted rounded-lg">
+                <p className="text-xs text-muted-foreground text-center">
+                  <span className="font-semibold">⚠️ Google authentication is disabled</span>
+                  <br />
+                  <span className="text-xs">Google OAuth keys are not configured on the server</span>
+                </p>
+              </div>
+            )}
             <button
               onClick={handleGoogleLogin}
-              className="w-full py-3 px-4 bg-background border-2 border-primary/20 text-foreground rounded-xl font-semibold 
-                hover:bg-accent focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
-                transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] 
-                flex items-center justify-center gap-3"
+              disabled={googleAuthEnabled === false}
+              className={`w-full py-3 px-4 bg-background border-2 border-primary/20 text-foreground rounded-xl font-semibold 
+                focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
+                transition-all duration-300 transform
+                flex items-center justify-center gap-3
+                ${googleAuthEnabled === false 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:bg-accent hover:scale-[1.02] active:scale-[0.98]'
+                }`}
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path

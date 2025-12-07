@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/auth/logout',
     ME: '/api/auth/me',
     GOOGLE: '/api/auth/google',
+    GOOGLE_STATUS: '/api/auth/google/status',
   },
   TASKS: {
     BASE: '/api/tasks',

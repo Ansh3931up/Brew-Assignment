@@ -65,6 +65,15 @@ export const authService = {
     const baseURL = getBaseURL();
     return `${baseURL}${API_ENDPOINTS.AUTH.GOOGLE}`;
   },
+
+  async checkGoogleAuthStatus(): Promise<{ enabled: boolean }> {
+    const baseURL = getBaseURL();
+    const response = await fetch(`${baseURL}${API_ENDPOINTS.AUTH.GOOGLE_STATUS}`);
+    if (!response.ok) {
+      return { enabled: false };
+    }
+    return response.json();
+  },
 };
 
 
