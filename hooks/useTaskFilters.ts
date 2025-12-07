@@ -64,8 +64,8 @@ export function useTaskFilters(filters: TaskFilters, sort?: TaskSortOption) {
     // Apply sorting
     if (sort) {
       result.sort((a, b) => {
-        let aValue: any;
-        let bValue: any;
+        let aValue: string | number;
+        let bValue: string | number;
 
         switch (sort.field) {
           case 'dueDate':

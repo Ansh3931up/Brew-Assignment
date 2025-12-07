@@ -12,10 +12,27 @@ const serializeTask = (task: Task): string => {
   });
 };
 
-const deserializeTask = (data: any): Task => {
+const deserializeTask = (data: {
+  id: string;
+  title: string;
+  description?: string;
+  priority: string;
+  status: string;
+  dueDate: string | null;
+  isFlagged: boolean;
+  assignedTo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}): Task => {
   return {
-    ...data,
+    id: data.id,
+    title: data.title,
+    description: data.description || '',
+    priority: data.priority as Task['priority'],
+    status: data.status as Task['status'],
     dueDate: data.dueDate ? new Date(data.dueDate) : null,
+    isFlagged: data.isFlagged,
+    assignedTo: data.assignedTo,
     createdAt: new Date(data.createdAt),
     updatedAt: new Date(data.updatedAt),
   };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -8,7 +8,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, id, ...props }, ref) => {
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const inputId = useMemo(() => id || `input-${Math.random().toString(36).substr(2, 9)}`, [id]);
 
     return (
       <div className="w-full">

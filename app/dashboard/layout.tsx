@@ -85,8 +85,6 @@ export default function DashboardLayoutWrapper({
     friends: 0,
     missed: 0,
   })
-  const [loadingStats, setLoadingStats] = useState(false)
-
   // Wrapper function to handle partial updates
   const setTaskCounts = useCallback((counts: TaskCounts) => {
     setTaskCountsState((prev) => ({ ...prev, ...counts }))
@@ -110,7 +108,6 @@ export default function DashboardLayoutWrapper({
         return
       }
 
-      setLoadingStats(true)
       try {
         const stats = await dashboardService.getDashboardStats()
         setTaskCountsState({
@@ -126,8 +123,6 @@ export default function DashboardLayoutWrapper({
       } catch (error) {
         logger.error('Failed to fetch dashboard stats:', error)
         // Don't show error to user, just log it
-      } finally {
-        setLoadingStats(false)
       }
     }
 

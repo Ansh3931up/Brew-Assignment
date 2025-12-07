@@ -12,15 +12,16 @@ export default function SearchPage() {
   const router = useRouter()
   const { setTaskCounts } = useTaskCounts()
   const { setSearchQuery: setGlobalSearchQuery } = useSearch()
-  const [searchQuery, setSearchQuery] = useState('')
+  const query = searchParams.get('q') || ''
   const [hasResults, setHasResults] = useState<boolean | null>(null)
 
+  // Update global search query when query changes
   useEffect(() => {
-    const query = searchParams.get('q') || ''
-    setSearchQuery(query)
     setGlobalSearchQuery(query)
+  }, [query, setGlobalSearchQuery])
 
-    // Check if there are results
+  // Check if there are results
+  useEffect(() => {
     if (query.trim()) {
       setHasResults(null) // Loading state
       taskService.searchAllTasks(query.trim())
@@ -36,7 +37,7 @@ export default function SearchPage() {
       // If no query, redirect to dashboard
       router.push('/dashboard')
     }
-  }, [searchParams, router, setGlobalSearchQuery])
+  }, [query, router])
 
   // Show loading state
   if (hasResults === null) {
@@ -54,7 +55,7 @@ export default function SearchPage() {
   }
 
   // If no results, show empty state
-  if (!hasResults && searchQuery.trim()) {
+  if (!hasResults && query.trim()) {
     return (
       <div className="flex-1 overflow-y-auto">
         <div className="mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-8">
@@ -63,7 +64,7 @@ export default function SearchPage() {
               No tasks found
             </p>
             <p className="text-sm text-muted-foreground dark:text-text-mutedDark">
-              No tasks match &quot;{searchQuery}&quot;
+              No tasks match &quot;{query}&quot;
             </p>
           </div>
         </div>
@@ -75,7 +76,7 @@ export default function SearchPage() {
   return (
     <TaskContent
       selectedCategory="search"
-      searchQuery={searchQuery}
+      searchQuery={query}
       onTaskCountsChange={setTaskCounts}
       onAddTask={() => {
         // TODO: Open add task modal

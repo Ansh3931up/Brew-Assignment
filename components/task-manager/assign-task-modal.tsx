@@ -25,8 +25,9 @@ export function AssignTaskModal({
   const [selectedFriendId, setSelectedFriendId] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Reset state when modal opens (not when it closes)
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
       setSelectedFriendId('')
       setSearchQuery('')
     }

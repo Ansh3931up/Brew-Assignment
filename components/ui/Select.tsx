@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
@@ -9,7 +9,7 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, options, id, ...props }, ref) => {
-    const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
+    const selectId = useMemo(() => id || `select-${Math.random().toString(36).substr(2, 9)}`, [id]);
 
     return (
       <div className="w-full">

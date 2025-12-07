@@ -93,7 +93,7 @@ export function TaskEditor({ isOpen, onClose, task }: TaskEditorProps) {
     }
   };
 
-  const handleChange = (field: keyof CreateTaskData, value: any) => {
+  const handleChange = (field: keyof CreateTaskData, value: CreateTaskData[keyof CreateTaskData]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => {
