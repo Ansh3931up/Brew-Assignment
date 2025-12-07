@@ -131,6 +131,7 @@ export default function DashboardLayoutWrapper({
     if (pathname === '/dashboard/completed') return 'completed'
     if (pathname === '/dashboard/missed') return 'missed'
     if (pathname === '/dashboard/friends') return 'friends'
+    if (pathname?.startsWith('/dashboard/search')) return 'search'
     return 'all'
   }
 

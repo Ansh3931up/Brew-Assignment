@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, startTransition } from 'react'
+import { useState, useEffect, useRef, startTransition, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { CheckCircle2, Calendar, Users, Search, UserPlus, X, List, Flag, Trash2, Check, AlertCircle } from 'lucide-react'
@@ -10,7 +10,6 @@ import type { Friend } from '@/lib/interface/task'
 import { toastService } from '@/lib/utils/toast'
 import { logger } from '@/lib/utils/logger'
 import { getErrorMessage, isRateLimitError } from '@/lib/utils/errorHandler'
-import { SendFriendRequestModal } from './send-friend-request-modal'
 
 interface TaskSidebarProps {
   selectedCategory: string | null
@@ -43,7 +42,6 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<Friend[]>([])
   const [showSearchResults, setShowSearchResults] = useState(false)
-  const [isSendRequestModalOpen, setIsSendRequestModalOpen] = useState(false)
   const [friendToDelete, setFriendToDelete] = useState<Friend | null>(null)
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([])
 
@@ -89,39 +87,63 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
 
   const searchDebounceRef = useRef<NodeJS.Timeout | null>(null)
   
-  const handleSearch = async (query: string) => {
+  // Perform the actual search API call
+  const performSearch = useCallback(async (query: string) => {
+    if (query.trim().length === 0) {
+      setShowSearchResults(false)
+      setSearchResults([])
+      return
+    }
+    
+    if (!user?.id) return
+    
+    try {
+      const results = await friendService.searchUsers(query)
+      setSearchResults(results.map(r => ({ id: r.id, name: r.name, email: r.email })))
+      setShowSearchResults(true)
+    } catch (error) {
+      logger.error('Failed to search users:', error)
+      const errorMessage = getErrorMessage(error)
+      if (isRateLimitError(error)) {
+        toastService.error('Too many requests. Please wait a moment before searching again.')
+      } else {
+        toastService.error(errorMessage || 'Failed to search users')
+      }
+      setShowSearchResults(false)
+      setSearchResults([])
+    }
+  }, [user?.id])
+  
+  // Handle input change - just update the query, don't search
+  const handleSearchInputChange = useCallback((query: string) => {
     setSearchQuery(query)
+    // Clear search results when input changes
+    if (query.trim().length === 0) {
+      setShowSearchResults(false)
+      setSearchResults([])
+    }
+  }, [])
+  
+  // Handle Enter key - perform search with debouncing
+  const handleSearchEnter = useCallback(async () => {
+    const query = searchQuery.trim()
+    
+    if (query.length === 0) {
+      setShowSearchResults(false)
+      setSearchResults([])
+      return
+    }
     
     // Clear previous debounce
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current)
     }
     
-    if (query.trim().length === 0) {
-      setShowSearchResults(false)
-      return
-    }
-    
-    if (!user?.id) return
-    
-    // Debounce search to prevent rate limiting
+    // Debounce the search to prevent rapid Enter key presses
     searchDebounceRef.current = setTimeout(async () => {
-      try {
-        const results = await friendService.searchUsers(query)
-        setSearchResults(results.map(r => ({ id: r.id, name: r.name, email: r.email })))
-        setShowSearchResults(true)
-      } catch (error) {
-        logger.error('Failed to search users:', error)
-        const errorMessage = getErrorMessage(error)
-        if (isRateLimitError(error)) {
-          toastService.error('Too many requests. Please wait a moment before searching again.')
-        } else {
-          toastService.error(errorMessage || 'Failed to search users')
-        }
-        setShowSearchResults(false)
-      }
-    }, 500) // 500ms debounce
-  }
+      await performSearch(query)
+    }, 300) // 300ms debounce for Enter key
+  }, [searchQuery, performSearch])
 
   const handleSendRequestFromSearch = async (friend: Friend) => {
     if (!user?.id) return
@@ -142,30 +164,6 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
     }
   }
 
-  const handleSendFriendRequest = async (email: string) => {
-    if (!user?.id) return
-    try {
-      // First search for the user by email
-      const users = await friendService.searchUsers(email)
-      if (users.length === 0) {
-        throw new Error('User not found')
-      }
-      const userToAdd = users[0]
-      await friendService.sendFriendRequest(userToAdd.id)
-      toastService.success(`Friend request sent to ${email}!`)
-      setIsSendRequestModalOpen(false)
-      loadFriendRequests()
-    } catch (error: unknown) {
-      logger.error('Failed to send friend request:', error)
-      const errorMessage = getErrorMessage(error)
-      if (isRateLimitError(error)) {
-        toastService.error('Too many requests. Please wait a moment before sending another request.')
-      } else {
-        toastService.error(errorMessage || 'Failed to send friend request')
-      }
-      throw error
-    }
-  }
 
   const handleAcceptRequest = async (requestId: string) => {
     if (!user?.id) return
@@ -227,16 +225,14 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
             searchResults={searchResults}
             showSearchResults={showSearchResults}
             friendRequests={friendRequests}
-            onSearch={handleSearch}
+            onSearch={handleSearchInputChange}
+            onSearchEnter={handleSearchEnter}
             onSendRequestFromSearch={handleSendRequestFromSearch}
-            onSendFriendRequest={handleSendFriendRequest}
             onAcceptRequest={handleAcceptRequest}
             onRejectRequest={handleRejectRequest}
             onDeleteFriend={handleDeleteFriend}
             friendToDelete={friendToDelete}
             setFriendToDelete={setFriendToDelete}
-            isSendRequestModalOpen={isSendRequestModalOpen}
-            setIsSendRequestModalOpen={setIsSendRequestModalOpen}
             currentUserEmail={user?.email}
           />
         </div>
@@ -262,16 +258,14 @@ export function TaskSidebar({ selectedCategory, isOpen = true, onClose, isDeskto
           searchResults={searchResults}
           showSearchResults={showSearchResults}
           friendRequests={friendRequests}
-          onSearch={handleSearch}
+          onSearch={handleSearchInputChange}
+          onSearchEnter={handleSearchEnter}
           onSendRequestFromSearch={handleSendRequestFromSearch}
-          onSendFriendRequest={handleSendFriendRequest}
           onAcceptRequest={handleAcceptRequest}
           onRejectRequest={handleRejectRequest}
           onDeleteFriend={handleDeleteFriend}
           friendToDelete={friendToDelete}
           setFriendToDelete={setFriendToDelete}
-          isSendRequestModalOpen={isSendRequestModalOpen}
-          setIsSendRequestModalOpen={setIsSendRequestModalOpen}
           currentUserEmail={user?.email}
         />
       </div>
@@ -289,15 +283,13 @@ function SidebarContent({
   showSearchResults,
   friendRequests,
   onSearch,
+  onSearchEnter,
   onSendRequestFromSearch,
-  onSendFriendRequest,
   onAcceptRequest,
   onRejectRequest,
   onDeleteFriend,
   friendToDelete,
   setFriendToDelete,
-  isSendRequestModalOpen,
-  setIsSendRequestModalOpen,
   currentUserEmail,
 }: {
   selectedCategory: string | null
@@ -316,15 +308,13 @@ function SidebarContent({
   showSearchResults: boolean
   friendRequests: FriendRequest[]
   onSearch: (query: string) => void
+  onSearchEnter: () => void
   onSendRequestFromSearch: (friend: Friend) => Promise<void>
-  onSendFriendRequest: (email: string) => Promise<void>
   onAcceptRequest: (requestId: string) => Promise<void>
   onRejectRequest: (requestId: string) => Promise<void>
   onDeleteFriend: (friend: Friend) => Promise<void>
   friendToDelete: Friend | null
   setFriendToDelete: (friend: Friend | null) => void
-  isSendRequestModalOpen: boolean
-  setIsSendRequestModalOpen: (open: boolean) => void
   currentUserEmail?: string
 }) {
   const router = useRouter()
@@ -493,22 +483,21 @@ function SidebarContent({
           </div>
         )}
 
-        {/* Friends Search and Add */}
-        <div className="px-2.5 pb-3 space-y-2">
-          <button
-            onClick={() => setIsSendRequestModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-primary/10 hover:bg-primary/20 dark:bg-primary/20 dark:hover:bg-primary/30 border border-primary/30 dark:border-primary/40 rounded-md text-xs font-medium text-primary transition-colors"
-          >
-            <UserPlus className="h-3.5 w-3.5" />
-            <span>Send Friend Request</span>
-          </button>
+        {/* Friends Search */}
+        <div className="px-2.5 pb-3">
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground dark:text-[#cbd5e1]" />
             <input
               type="text"
-              placeholder="Search for friends"
+              placeholder="Search for friends (Press Enter)"
               value={searchQuery}
               onChange={(e) => onSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  onSearchEnter()
+                }
+              }}
               className="w-full pl-8 pr-3 py-1.5 bg-white/20 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-md text-xs text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 backdrop-blur-sm"
             />
             {showSearchResults && searchResults.length > 0 && (
@@ -589,13 +578,6 @@ function SidebarContent({
           )}
         </div>
       </div>
-
-      {/* Modals */}
-      <SendFriendRequestModal
-        isOpen={isSendRequestModalOpen}
-        onClose={() => setIsSendRequestModalOpen(false)}
-        onSend={onSendFriendRequest}
-      />
 
       {/* Delete Friend Confirmation */}
       {friendToDelete && (

@@ -291,8 +291,9 @@ export function TaskHeader({
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && searchQuery.trim()) {
-                  // Navigate to search results or filter current view
                   e.preventDefault()
+                  // Navigate to search results page
+                  router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery.trim())}`)
                 }
               }}
               className="pl-8 sm:pl-9 pr-2 sm:pr-3 py-1 sm:py-1.5 w-[120px] sm:w-[140px] md:w-[180px] lg:w-[220px] xl:w-[280px] bg-background-cardDark dark:bg-background-cardDark border border-border dark:border-border-darkMode rounded-lg text-xs sm:text-sm text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"

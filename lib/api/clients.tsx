@@ -1,5 +1,6 @@
 'use client'
-import axios, { type AxiosInstance } from 'axios'
+import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios'
+import { getBaseURL } from './utils'
 
 // Lazy API client - don't access env at module evaluation time
 // This prevents Server Component errors even when imported from Server Components
@@ -7,16 +8,11 @@ let _api: AxiosInstance | null = null
 
 function createApiClient(): AxiosInstance {
   if (!_api) {
-    // Use process.env directly - safe in client components
-    const url = process.env.NEXT_PUBLIC_API_URL
-    if (!url) {
-      throw new Error(
-        'NEXT_PUBLIC_API_URL is required. Please set it in your .env.local file.'
-      )
-    }
+    // Use getBaseURL helper to ensure consistent base URL across all requests
+    const baseURL = getBaseURL()
 
     _api = axios.create({
-      baseURL: url,
+      baseURL: baseURL,
       headers: {
         'Content-Type': 'application/json'
       }
@@ -24,7 +20,13 @@ function createApiClient(): AxiosInstance {
 
     _api.interceptors.request.use(
       (config) => {
-        // Add auth token later if needed
+        // Add auth token from localStorage
+        if (typeof window !== 'undefined') {
+          const token = localStorage.getItem('auth_token')
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`
+          }
+        }
         return config
       },
       (error) => {
@@ -35,7 +37,17 @@ function createApiClient(): AxiosInstance {
     _api.interceptors.response.use(
       (response) => response.data,
       (error) => {
-        const message = error?.response?.data?.message || 'API Error'
+        // Handle 401 - Unauthorized (token expired or invalid)
+        if (error?.response?.status === 401) {
+          // Clear token and redirect to login
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('current_user')
+            window.location.href = '/login'
+          }
+        }
+
+        const message = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'API Error'
         return Promise.reject(new Error(message))
       }
     )
@@ -48,24 +60,24 @@ function getApiClient(): AxiosInstance {
   return createApiClient()
 }
 
-// Export API methods as a simple object with lazy getters
+// Typed API wrapper - the interceptor extracts response.data, so we return T directly
 export const api = {
-  get get() {
-    return getApiClient().get.bind(getApiClient())
+  get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return getApiClient().get<T>(url, config) as Promise<T>
   },
-  get post() {
-    return getApiClient().post.bind(getApiClient())
+  post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return getApiClient().post<T>(url, data, config) as Promise<T>
   },
-  get put() {
-    return getApiClient().put.bind(getApiClient())
+  put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return getApiClient().put<T>(url, data, config) as Promise<T>
   },
-  get delete() {
-    return getApiClient().delete.bind(getApiClient())
+  delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return getApiClient().delete<T>(url, config) as Promise<T>
   },
-  get patch() {
-    return getApiClient().patch.bind(getApiClient())
+  patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return getApiClient().patch<T>(url, data, config) as Promise<T>
   },
-  get request() {
-    return getApiClient().request.bind(getApiClient())
+  request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
+    return getApiClient().request<T>(config) as Promise<T>
   }
-} as Pick<AxiosInstance, 'get' | 'post' | 'put' | 'delete' | 'patch' | 'request'>
+}

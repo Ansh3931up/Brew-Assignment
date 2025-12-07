@@ -106,6 +106,21 @@ export const fetchCompletedTasks = createAsyncThunk(
   }
 )
 
+export const fetchSearchTasks = createAsyncThunk(
+  'tasks/fetchSearchTasks',
+  async (query: string, { rejectWithValue }) => {
+    try {
+      const tasks = await taskService.searchAllTasks(query)
+      return tasks
+    } catch (error) {
+      if (isRateLimitError(error)) {
+        return rejectWithValue({ message: 'Too many requests. Please wait a moment.', rateLimited: true })
+      }
+      return rejectWithValue({ message: getErrorMessage(error) || 'Failed to search tasks' })
+    }
+  }
+)
+
 export const fetchMissedTasks = createAsyncThunk(
   'tasks/fetchMissedTasks',
   async (search: string | undefined, { rejectWithValue }) => {
@@ -423,6 +438,29 @@ const taskSlice = createSlice({
         state.loading = false
         const error = action.payload as { message: string; rateLimited?: boolean } | undefined
         state.error = error?.message || 'Failed to fetch missed tasks'
+        const wasRateLimited = state.rateLimited
+        state.rateLimited = error?.rateLimited || false
+        if (state.rateLimited && !wasRateLimited) {
+          toastService.error('Too many requests. Please wait a moment and try again.')
+        }
+      })
+      // Search tasks
+      .addCase(fetchSearchTasks.pending, (state) => {
+        state.loading = true
+        state.error = null
+        state.rateLimited = false
+      })
+      .addCase(fetchSearchTasks.fulfilled, (state, action) => {
+        state.loading = false
+        state.myTasks = action.payload
+        state.lastFetchTime = Date.now()
+        state.error = null
+        state.rateLimited = false
+      })
+      .addCase(fetchSearchTasks.rejected, (state, action) => {
+        state.loading = false
+        const error = action.payload as { message: string; rateLimited?: boolean } | undefined
+        state.error = error?.message || 'Failed to search tasks'
         const wasRateLimited = state.rateLimited
         state.rateLimited = error?.rateLimited || false
         if (state.rateLimited && !wasRateLimited) {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { CheckCircle2, Info, Plus, Undo2, Redo2, Edit2, Trash2, Filter, Eye, EyeOff, Flag, Calendar, ChevronDown } from 'lucide-react'
+import { CheckCircle2, Info, Plus, Undo2, Redo2, Edit2, Trash2, Filter, Eye, EyeOff, Flag, Calendar, ChevronDown, UserPlus } from 'lucide-react'
 import type { RootState, AppDispatch } from '@/lib/store'
 import {
   fetchTasks,
@@ -12,6 +12,7 @@ import {
   fetchScheduledTasks,
   fetchCompletedTasks,
   fetchMissedTasks,
+  fetchSearchTasks,
   createTask as createTaskThunk,
   updateTask as updateTaskThunk,
   deleteTask as deleteTaskThunk,
@@ -160,6 +161,15 @@ export function TaskContent({
           break
         case 'missed':
           tasksPromise = dispatch(fetchMissedTasks(search))
+          break
+        case 'search':
+          // Use search query from URL/searchQuery prop
+          if (search && search.trim()) {
+            tasksPromise = dispatch(fetchSearchTasks(search.trim()))
+          } else {
+            // If no search query, fetch all tasks
+            tasksPromise = dispatch(fetchTasks({ all: true }))
+          }
           break
         case 'all':
         default:
@@ -648,13 +658,20 @@ export function TaskContent({
           filtered = filtered.filter((t) => t.status !== 'completed')
           break
         case 'today':
-        case 'flagged':
         case 'scheduled':
           // These are already filtered by the server, but also exclude completed
           filtered = filtered.filter((t) => t.status !== 'completed')
           break
+        case 'flagged':
+          // Flagged tasks are already filtered by the server - show all flagged tasks regardless of completion status
+          // No additional filtering needed
+          break
         case 'completed':
           filtered = filtered.filter((t) => t.status === 'completed')
+          break
+        case 'search':
+          // Search results are already filtered by the server
+          // No additional filtering needed
           break
         case 'missed':
           filtered = filtered.filter(
@@ -875,6 +892,22 @@ export function TaskContent({
                 title="Edit"
               >
                 <Edit2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const taskToAssign = [...myTasks, ...assignedTasks].find(t => t.id === task.id)
+                  if (taskToAssign && sectionType === 'my') {
+                    setTaskToAssign(taskToAssign)
+                    setIsAssignModalOpen(true)
+                  }
+                }}
+                className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 flex items-center justify-center transition-colors shadow-md"
+                aria-label="Assign task"
+                title="Assign to friend"
+                disabled={sectionType === 'assigned'}
+              >
+                <UserPlus className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
               </button>
               <button
                 onClick={(e) => {
