@@ -28,29 +28,20 @@ export function DashboardLayout({
   selectedCategory = null,
   taskCounts = {},
 }: DashboardLayoutProps) {
-  // Initialize sidebar state - always start with false to avoid hydration mismatch
-  // Will be updated after mount based on localStorage/window size
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const { wallpaper } = useTheme()
-
-  // Initialize sidebar state from localStorage after mount to avoid hydration mismatch
-  useEffect(() => {
+  // Initialize sidebar state with lazy initializer to avoid hydration mismatch
+  // This runs only on the client side and avoids setState in useEffect
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('sidebar-open')
       if (stored !== null) {
-        // Use setTimeout to defer setState call
-        setTimeout(() => {
-          setIsSidebarOpen(stored === 'true')
-        }, 0)
-      } else {
-        // Default: open on desktop (md+), closed on mobile
-        // Use setTimeout to defer setState call
-        setTimeout(() => {
-          setIsSidebarOpen(window.innerWidth >= 768)
-        }, 0)
+        return stored === 'true'
       }
+      // Default: open on desktop (md+), closed on mobile
+      return window.innerWidth >= 768
     }
-  }, [])
+    return false
+  })
+  const { wallpaper } = useTheme()
 
   // Persist sidebar state to localStorage
   useEffect(() => {
