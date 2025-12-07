@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { TaskPageLayout } from '@/components/tasks/TaskPageLayout';
 import { TaskList } from '@/components/tasks/TaskList';
-import { useTaskFilters } from '@/hooks/useTaskFilters';
 import { useFriendStore } from '@/stores/FriendStore';
 import { useTaskStore } from '@/stores/TaskStore';
 import { Select } from '@/components/ui/Select';
@@ -16,7 +15,7 @@ interface FriendsPageProps {
 }
 
 export default function FriendsPage(props: FriendsPageProps) {
-  const { onDelete, searchQuery = '' } = props;
+  const { onDelete } = props;
   const { friends } = useFriendStore();
   const { deleteTask, tasks } = useTaskStore();
   const [selectedFriend, setSelectedFriend] = useState<string>('all');

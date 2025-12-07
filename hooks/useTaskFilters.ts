@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Task, TaskFilters, TaskSortOption } from '@/types/task';
+import type { TaskFilters, TaskSortOption } from '@/types/task';
 import { useTaskStore } from '@/stores/TaskStore';
 
 export function useTaskFilters(filters: TaskFilters, sort?: TaskSortOption) {

@@ -6,7 +6,6 @@ import { ArrowLeft } from 'lucide-react';
 import { useTaskStore } from '@/stores/TaskStore';
 import { useFriendStore } from '@/stores/FriendStore';
 import { Button } from '@/components/ui/Button';
-import { TaskEditor } from '@/components/tasks/TaskEditor';
 import { motion } from 'framer-motion';
 
 export default function TaskDetailPage() {

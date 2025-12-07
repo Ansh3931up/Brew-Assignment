@@ -27,7 +27,7 @@ export default function AuthCallbackPage() {
 
         toastService.success('Login successful!')
         router.push('/dashboard')
-      } catch (error) {
+      } catch {
         toastService.error('Failed to process authentication')
         router.push('/login')
       }

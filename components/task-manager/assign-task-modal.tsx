@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { UserPlus, X, Users, Search } from 'lucide-react'
 import type { Friend } from '@/lib/interface/task'
 import { logger } from '@/lib/utils/logger'
@@ -24,13 +24,19 @@ export function AssignTaskModal({
 }: AssignTaskModalProps) {
   const [selectedFriendId, setSelectedFriendId] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
+  const previousIsOpenRef = useRef<boolean>(false)
 
   // Reset state when modal opens (not when it closes)
   useEffect(() => {
-    if (isOpen) {
-      setSelectedFriendId('')
-      setSearchQuery('')
+    // Only reset if modal just opened (was closed, now open)
+    if (isOpen && !previousIsOpenRef.current) {
+      // Use setTimeout to defer setState calls
+      setTimeout(() => {
+        setSelectedFriendId('')
+        setSearchQuery('')
+      }, 0)
     }
+    previousIsOpenRef.current = isOpen
   }, [isOpen])
 
   const filteredFriends = friends.filter((friend) =>
@@ -137,6 +143,7 @@ export function AssignTaskModal({
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                           {friend.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={friend.avatar}
                               alt={friend.name}

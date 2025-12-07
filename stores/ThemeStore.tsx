@@ -22,8 +22,8 @@ export function ThemeStoreProvider({ children }: { children: React.ReactNode }) 
       if (stored === 'light' || stored === 'dark') {
         return stored;
       }
-    } catch (error) {
-      console.error('Error loading theme from localStorage:', error);
+    } catch {
+      // Silently fail if localStorage is not available
     }
     
     // Check system preference
@@ -37,8 +37,8 @@ export function ThemeStoreProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, mode);
-    } catch (error) {
-      console.error('Error saving theme to localStorage:', error);
+    } catch {
+      // Silently fail if localStorage is not available
     }
 
     // Apply theme to document

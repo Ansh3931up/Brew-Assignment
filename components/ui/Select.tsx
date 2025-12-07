@@ -1,5 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
+
+// Module-level counter for generating unique IDs
+let selectIdCounter = 0;
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
@@ -9,7 +12,12 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, options, id, ...props }, ref) => {
-    const selectId = useMemo(() => id || `select-${Math.random().toString(36).substr(2, 9)}`, [id]);
+    // Use ref to store generated ID (only created once)
+    const generatedIdRef = useRef<string | null>(null);
+    if (!id && !generatedIdRef.current) {
+      generatedIdRef.current = `select-${++selectIdCounter}`;
+    }
+    const selectId = id || generatedIdRef.current || '';
 
     return (
       <div className="w-full">

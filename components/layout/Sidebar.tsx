@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 import {
   Calendar,
   CheckCircle2,
@@ -14,7 +13,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTaskStore } from '@/stores/TaskStore';
-import { useTaskFilters } from '@/hooks/useTaskFilters';
 
 interface NavItem {
   id: string;

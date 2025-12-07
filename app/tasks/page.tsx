@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { TaskPageLayout } from '@/components/tasks/TaskPageLayout';
 import { TaskList } from '@/components/tasks/TaskList';
 import { useTaskFilters } from '@/hooks/useTaskFilters';

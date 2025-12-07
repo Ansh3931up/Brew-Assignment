@@ -47,8 +47,7 @@ const loadTasks = (): Task[] => {
     
     const tasks = JSON.parse(stored);
     return tasks.map(deserializeTask);
-  } catch (error) {
-    console.error('Error loading tasks from localStorage:', error);
+  } catch {
     return [];
   }
 };
@@ -59,8 +58,8 @@ const saveTasks = (tasks: Task[]): void => {
   try {
     const serialized = tasks.map(serializeTask);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serialized));
-  } catch (error) {
-    console.error('Error saving tasks to localStorage:', error);
+  } catch {
+    // Silently fail if localStorage is not available
   }
 };
 

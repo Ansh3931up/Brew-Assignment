@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
-import { Info, Edit2, Trash2, UserPlus, Calendar, Flag, Tag } from 'lucide-react'
+import { Edit2, Trash2, UserPlus, Calendar } from 'lucide-react'
 import type { Task } from '@/lib/interface/task'
 import { formatTaskDate, formatPriority, formatStatus } from '@/lib/utils/task-helpers'
 

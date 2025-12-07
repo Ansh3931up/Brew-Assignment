@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { TaskContent } from '@/components/task-manager/task-content'
 import { useTaskCounts, useSearch } from '../layout'
@@ -14,6 +14,7 @@ export default function SearchPage() {
   const { setSearchQuery: setGlobalSearchQuery } = useSearch()
   const query = searchParams.get('q') || ''
   const [hasResults, setHasResults] = useState<boolean | null>(null)
+  const previousQueryRef = useRef<string>('')
 
   // Update global search query when query changes
   useEffect(() => {
@@ -22,8 +23,20 @@ export default function SearchPage() {
 
   // Check if there are results
   useEffect(() => {
+    // Only process if query actually changed
+    if (previousQueryRef.current === query) {
+      return
+    }
+    previousQueryRef.current = query
+
+    let timeoutId: NodeJS.Timeout | null = null
+
     if (query.trim()) {
-      setHasResults(null) // Loading state
+      // Use setTimeout to defer setState call
+      timeoutId = setTimeout(() => {
+        setHasResults(null) // Loading state
+      }, 0)
+      
       taskService.searchAllTasks(query.trim())
         .then((tasks) => {
           setHasResults(tasks.length > 0)
@@ -33,9 +46,18 @@ export default function SearchPage() {
           setHasResults(false)
         })
     } else {
-      setHasResults(false)
+      // Use setTimeout to defer setState call
+      timeoutId = setTimeout(() => {
+        setHasResults(false)
+      }, 0)
       // If no query, redirect to dashboard
       router.push('/dashboard')
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
     }
   }, [query, router])
 

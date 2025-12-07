@@ -14,13 +14,13 @@ const mockAxiosInstance = {
   request: jest.fn(),
   interceptors: {
     request: {
-      use: jest.fn((successHandler) => {
+      use: jest.fn(() => {
         // Store and use the success handler
         return 0
       }),
     },
     response: {
-      use: jest.fn((successHandler, errorHandler) => {
+      use: jest.fn(() => {
         // The success handler extracts response.data
         // We'll apply this in our mock
         return 1
@@ -40,15 +40,11 @@ jest.mock('axios', () => ({
 // But we need to make sure it uses our mocked axios
 // The tricky part is the api object uses getters
 jest.mock('@/lib/api/clients', () => {
-  // We'll create a mock that mimics the structure
-  const axios = require('axios').default
-  const instance = axios.create('http://localhost:3001')
-  
   // Apply the response interceptor logic manually in our mock
   // The interceptor returns response.data
-  const createMockApiMethod = (method: any) => {
-    return (...args: any[]) => {
-      return method(...args).then((response: any) => {
+  const createMockApiMethod = (method: jest.Mock) => {
+    return (...args: unknown[]) => {
+      return (method(...args) as Promise<{ data?: unknown }>).then((response: { data?: unknown }) => {
         // Simulate the interceptor: return response.data
         return response.data || response
       })

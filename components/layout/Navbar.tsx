@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Search, Moon, Sun, Plus } from 'lucide-react';
 import { useThemeStore } from '@/stores/ThemeStore';
 import { Button } from '@/components/ui/Button';

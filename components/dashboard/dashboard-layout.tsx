@@ -38,13 +38,18 @@ export function DashboardLayout({
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('sidebar-open')
       if (stored !== null) {
-        setIsSidebarOpen(stored === 'true')
+        // Use setTimeout to defer setState call
+        setTimeout(() => {
+          setIsSidebarOpen(stored === 'true')
+        }, 0)
       } else {
         // Default: open on desktop (md+), closed on mobile
-        setIsSidebarOpen(window.innerWidth >= 768)
+        // Use setTimeout to defer setState call
+        setTimeout(() => {
+          setIsSidebarOpen(window.innerWidth >= 768)
+        }, 0)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Persist sidebar state to localStorage

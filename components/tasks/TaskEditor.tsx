@@ -9,7 +9,6 @@ import { useFriendStore } from '@/stores/FriendStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
-import { cn } from '@/lib/utils';
 
 interface TaskEditorProps {
   isOpen: boolean;
@@ -86,7 +85,6 @@ export function TaskEditor({ isOpen, onClose, task }: TaskEditorProps) {
       }
       onClose();
     } catch (error) {
-      console.error('Error saving task:', error);
       setErrors({ submit: error instanceof Error ? error.message : 'Failed to save task' });
     } finally {
       setIsSubmitting(false);

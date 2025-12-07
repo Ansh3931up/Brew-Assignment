@@ -1,5 +1,8 @@
-import React, { useMemo } from 'react';
+import React, { useRef } from 'react';
 import { cn } from '@/lib/utils';
+
+// Module-level counter for generating unique IDs
+let inputIdCounter = 0;
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,7 +11,12 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, id, ...props }, ref) => {
-    const inputId = useMemo(() => id || `input-${Math.random().toString(36).substr(2, 9)}`, [id]);
+    // Use ref to store generated ID (only created once)
+    const generatedIdRef = useRef<string | null>(null);
+    if (!id && !generatedIdRef.current) {
+      generatedIdRef.current = `input-${++inputIdCounter}`;
+    }
+    const inputId = id || generatedIdRef.current || '';
 
     return (
       <div className="w-full">

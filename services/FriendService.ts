@@ -18,8 +18,7 @@ const loadFriends = (): Friend[] => {
     }
     
     return JSON.parse(stored);
-  } catch (error) {
-    console.error('Error loading friends from localStorage:', error);
+  } catch {
     return [];
   }
 };
@@ -29,8 +28,8 @@ const saveFriends = (friends: Friend[]): void => {
   
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(friends));
-  } catch (error) {
-    console.error('Error saving friends to localStorage:', error);
+  } catch {
+    // Silently fail if localStorage is not available
   }
 };
 
