@@ -100,8 +100,18 @@ export function TaskHeader({
   }
 
   // Use mounted check to prevent hydration mismatch
-  // On server, always default to light mode to match initial render
-  const isDark = mounted ? mode === 'dark' : false
+  // Always default to false on server, update after mount using startTransition
+  const [isDark, setIsDark] = useState(false)
+  
+  useEffect(() => {
+    if (mounted) {
+      // Use setTimeout to defer state update and avoid cascading renders
+      const timeoutId = setTimeout(() => {
+        setIsDark(mode === 'dark')
+      }, 0)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [mounted, mode])
 
   const colorNames: Record<ThemeColor, string> = {
     blue: 'Blue',
@@ -146,7 +156,7 @@ export function TaskHeader({
             title="Theme settings"
             suppressHydrationWarning
           >
-            {mounted && isDark ? (
+            {isDark ? (
               <Sun className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground dark:text-foreground" />
             ) : (
               <Moon className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground dark:text-foreground" />
@@ -175,7 +185,7 @@ export function TaskHeader({
                     aria-label={`Switch to ${mounted && isDark ? 'light' : 'dark'} mode`}
                     suppressHydrationWarning
                   >
-                    {mounted && isDark ? (
+                    {isDark ? (
                       <Sun className="h-4 w-4 text-foreground dark:text-[#cbd5e1]" />
                     ) : (
                       <Moon className="h-4 w-4 text-foreground dark:text-[#cbd5e1]" />

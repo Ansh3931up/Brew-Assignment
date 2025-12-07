@@ -30,5 +30,20 @@ export default function DashboardPage() {
     )
   }
 
-  return <TaskContent selectedCategory="all" searchQuery={searchQuery} onTaskCountsChange={setTaskCounts} />
+  return (
+    <TaskContent
+      selectedCategory="all"
+      searchQuery={searchQuery}
+      onTaskCountsChange={setTaskCounts}
+      onAddTask={() => {
+        // TODO: Open add task modal
+      }}
+      onUndo={() => {
+        // TODO: Implement undo
+      }}
+      onRedo={() => {
+        // TODO: Implement redo
+      }}
+    />
+  )
 }
